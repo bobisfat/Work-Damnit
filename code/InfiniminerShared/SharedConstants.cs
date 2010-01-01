@@ -19,6 +19,7 @@ namespace Infiniminer
         public const string deathByExpl = "WAS KILLED IN AN EXPLOSION!";
         public const string deathByFall = "WAS KILLED BY GRAVITY!";
         public const string deathByMiss = "WAS KILLED BY MISADVENTURE!";
+        public const string deathByCrush = "WAS CRUSHED!";
         public const string deathBySuic = "HAS COMMITED PIXELCIDE!";
         public static Color IM_BLUE = new Color(80, 150, 255);
         public static Color IM_RED = new Color(222, 24, 24);

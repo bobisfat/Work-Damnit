@@ -119,6 +119,7 @@ namespace Infiniminer.States
         {
             // Double-speed move flag, set if we're on road.
             bool movingOnRoad = false;
+            bool movingOnMud = false;
             bool sprinting = false;
             bool crouching = false;
             bool swimming = false;
@@ -200,6 +201,10 @@ namespace Infiniminer.States
             {
                 BlockType standingOnBlock = _P.blockEngine.BlockAtPoint(footPosition);
                 BlockType hittingHeadOnBlock = _P.blockEngine.BlockAtPoint(headPosition);
+                BlockType crushedByBlock = _P.blockEngine.BlockAtPoint(midPosition);
+
+                if(crushedByBlock == BlockType.Sand || crushedByBlock == BlockType.Dirt)
+                    _P.KillPlayer(Defines.deathByCrush);
 
                 // If we"re hitting the ground with a high velocity, die!
                 if (standingOnBlock != BlockType.None && _P.playerVelocity.Y < 0)
@@ -234,6 +239,13 @@ namespace Infiniminer.States
                     }
                 }
 
+                if (_P.blockEngine.SolidAtPointForPlayer(midPosition))
+                {
+                    if (_P.blockEngine.blockList[(int)midPosition.X, (int)midPosition.Y, (int)midPosition.Z] == BlockType.Sand || _P.blockEngine.blockList[(int)midPosition.X, (int)midPosition.Y, (int)midPosition.Z] == BlockType.Dirt)
+                    {
+                        _P.KillPlayer(Defines.deathByCrush);//may not be reliable enough to kill players that get hit by sand
+                    }
+                }
                 // If the player has their head stuck in a block, push them down.
                 if (_P.blockEngine.SolidAtPointForPlayer(headPosition))
                 {
@@ -262,6 +274,10 @@ namespace Infiniminer.States
 
                     case BlockType.Road:
                         movingOnRoad = true;
+                        break;
+
+                    case BlockType.Mud:
+                        movingOnMud = true;
                         break;
 
                     case BlockType.Lava:
@@ -344,6 +360,8 @@ namespace Infiniminer.States
                 moveVector *= MOVESPEED * (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (movingOnRoad)
                     moveVector *= 2;
+                if (movingOnMud)
+                    moveVector *= 0.5f;
                 if (swimming)
                     moveVector *= 0.5f;
                 // Sprinting doubles speed, even if already on road
@@ -483,7 +501,14 @@ namespace Infiniminer.States
 
                         if (_P.blockEngine.SolidAtPointForPlayer(footPosition) && _P.playerVelocity.Y == 0)
                         {
-                            _P.playerVelocity.Y = JUMPVELOCITY;
+                            if (_P.blockEngine.BlockAtPoint(footPosition) == BlockType.Mud)
+                            {
+                                _P.playerVelocity.Y = JUMPVELOCITY / 3;
+                            }
+                            else
+                            {
+                                _P.playerVelocity.Y = JUMPVELOCITY;
+                            }
                             float amountBelowSurface = ((ushort)footPosition.Y) + 1 - footPosition.Y;
                             _P.playerPosition.Y += amountBelowSurface + 0.01f;
                         }
