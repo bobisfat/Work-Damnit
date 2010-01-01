@@ -136,6 +136,8 @@ namespace Infiniminer
             blockTextures = new IMTexture[(byte)BlockTexture.MAXIMUM];
             blockTextures[(byte)BlockTexture.None] = new IMTexture(null);
             blockTextures[(byte)BlockTexture.Dirt] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt"));
+            blockTextures[(byte)BlockTexture.Mud] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_mud"));
+            blockTextures[(byte)BlockTexture.Sand] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_sand"));
             blockTextures[(byte)BlockTexture.Rock] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_rock"));
             blockTextures[(byte)BlockTexture.Ore] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_ore"));
             blockTextures[(byte)BlockTexture.Gold] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_silver"));

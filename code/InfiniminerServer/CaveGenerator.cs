@@ -54,7 +54,19 @@ namespace Infiniminer
                     for (int z = 0; z <= Defines.GROUND_LEVEL; z++)
                         if (mountainData[x, y, z] == BlockType.None)
                             caveData[x, y, z] = BlockType.None;
-            
+            // carve sand
+            float[, ,] caveNoiseSand = CaveGenerator.GeneratePerlinNoise(32);
+            caveNoiseSand = InterpolateData(ref caveNoiseSand, 32, size);
+            gradient = CaveGenerator.GenerateGradient(size);
+            CaveGenerator.AddDataTo(ref caveNoiseSand, ref gradient, size, 1 - gradientStrength, gradientStrength);
+            int cavesToCarveSand = randGen.Next(size / 16, size / 8);
+            for (int i = 0; i < cavesToCarveSand; i++)
+                CaveGenerator.PaintWithRandomWalk(ref caveData, ref caveNoiseSand, size, randGen.Next(1, 2), BlockType.Sand, false);
+            cavesToCarveSand = randGen.Next(size / 16, size / 8);
+            for (int i = 0; i < cavesToCarveSand; i++)
+                CaveGenerator.PaintWithRandomWalk(ref caveData, ref caveNoiseSand, size, randGen.Next(1, 2), BlockType.Sand, false);
+
+
             // Carve some caves into the ground.
             float[, ,] caveNoise = CaveGenerator.GeneratePerlinNoise(32);
             caveNoise = InterpolateData(ref caveNoise, 32, size);
@@ -279,7 +291,7 @@ namespace Infiniminer
                 }
             }
         }
-
+ 
         // Generates a cube of noise with sides of length size. Noise falls in a linear
         // distribution ranging from 0 to magnitude.
         public static float[, ,] GenerateNoise(int size, float magnitude)

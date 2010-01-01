@@ -9,6 +9,8 @@ namespace Infiniminer
     {
         None,
         Dirt,
+        Mud,
+        Sand,
         Ore,
         Gold,
         Diamond,
@@ -43,6 +45,8 @@ namespace Infiniminer
     {
         None,
         Dirt,
+        Mud,
+        Sand,
         Ore,
         Gold,
         Diamond,
@@ -162,6 +166,10 @@ namespace Infiniminer
                     return BlockTexture.Metal;
                 case BlockType.Dirt:
                     return BlockTexture.Dirt;
+                case BlockType.Mud:
+                    return BlockTexture.Mud;
+                case BlockType.Sand:
+                    return BlockTexture.Sand;
                 case BlockType.Lava:
                     return BlockTexture.Lava;
                 case BlockType.Water:
