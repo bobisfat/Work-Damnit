@@ -71,9 +71,26 @@ namespace Infiniminer
         {
             BlockType testpoint = BlockAtPoint(pos);
 
-            if (testpoint == BlockType.None || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
+            if (testpoint == BlockType.None || testpoint == BlockType.Fire || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
             {//check if player is not in wall
                //falldamage
+                if (testpoint == BlockType.Fire)
+                {
+                    //burn
+                    if (pl.Health > 1)
+                    {
+                        pl.Health = pl.Health - 10;
+                        if (pl.Health == 0)
+                        {
+                            pl.Weight = 0;
+                            pl.Alive = false;
+
+                            SendResourceUpdate(pl);
+                            SendPlayerDead(pl);
+                            ConsoleWrite(pl.Handle + " died in the fire.");
+                        }
+                    }
+                }
             }
             else
             {
@@ -629,6 +646,7 @@ namespace Infiniminer
                     {
                         lavaBlockCount = 0;
                         waterBlockCount = 0;
+                        int tempBlockCount = 0;
 
                         for (ushort i = 0; i < MAPSIZE; i++)
                             for (ushort j = 0; j < MAPSIZE; j++)
@@ -637,14 +655,19 @@ namespace Infiniminer
                                     if (blockList[i,j,k] == BlockType.Lava)
                                     {
                                         lavaBlockCount += 1;
+                                        if (blockListContent[i, j, k, 1] > 0)
+                                        {
+                                            tempBlockCount += 1;
+                                        }
                                     }
                                     else if (blockList[i, j, k] == BlockType.Water)
                                     {
                                         waterBlockCount += 1;
-                                    }
+                                    } 
                                 }
 
                         ConsoleWrite(waterBlockCount + " water blocks, " + lavaBlockCount + " lava blocks.");
+                        ConsoleWrite(tempBlockCount + " temporary blocks.");
                     }
                     break;
                 case "flowsleep":
@@ -2319,313 +2342,414 @@ namespace Infiniminer
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k] || blockList[i, j, k] == BlockType.Lava && !flowSleep[i, j, k])//should be liquid check, not comparing each block
-                        {//dowaterstuff //dolavastuff
-
-                            BlockType liquid = blockList[i, j, k];
-                            BlockType opposing = BlockType.None;
-
-                            BlockType typeBelow = (j <= 0) ? BlockType.Vacuum : blockList[i, j - 1, k];//if j <= 0 then use block vacuum
-
-                            if (blockList[i, j, k] == BlockType.Water)
+                    {
+                        //temperature
+                        if (blockList[i, j, k] == BlockType.Lava && blockListContent[i, j, k, 1] > 0)//block is temperature sensitive
+                        {
+                            //if (blockList[i, j, k] == BlockType.Lava)
+                            //{
+                            if (blockListContent[i, j, k, 1] > 0)
                             {
-                                opposing = BlockType.Lava;
-                            }
-                            else
-                            {
-                                //lava stuff
-                                if (varGetB("roadabsorbs"))
+                                blockListContent[i, j, k, 1] -= 1;
+                                if (blockListContent[i, j, k, 1] == 0)
                                 {
-                                    BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
-                                    if (typeAbove == BlockType.Road)
+                                    SetBlock(i, j, k, BlockType.Mud, PlayerTeam.None);//magma cools down into dirt
+                                    blockListContent[i, j, k, 0] = 480;//two minutes of mudout
+                                }
+                                //    }
+                            }
+                        }
+                            if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k] || blockList[i, j, k] == BlockType.Lava && !flowSleep[i, j, k] || blockList[i, j, k] == BlockType.Fire)//should be liquid check, not comparing each block
+                            {//dowaterstuff //dolavastuff
+
+                                BlockType liquid = blockList[i, j, k];
+                                BlockType opposing = BlockType.None;
+
+                                BlockType typeBelow = (j <= 0) ? BlockType.Vacuum : blockList[i, j - 1, k];//if j <= 0 then use block vacuum
+
+                                if (liquid == BlockType.Water)
+                                {
+                                    opposing = BlockType.Lava;
+                                }
+                                else
+                                {
+                                    //lava stuff
+                                    if (varGetB("roadabsorbs"))
                                     {
-                                        SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
-                                    }
-                                }
-                            }
-
-                            if (typeBelow != liquid && varGetB("insane"))
-                            {
-                                if (i > 0 && blockList[i - 1, j, k] == BlockType.None)
-                                {
-                                    SetBlock((ushort)(i - 1), j, k, liquid, PlayerTeam.None);
-                                }
-                                if (k > 0 && blockList[i, j, k - 1] == BlockType.None)
-                                {
-                                    SetBlock(i, j, (ushort)(k - 1), liquid, PlayerTeam.None);
-                                }
-                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
-                                {
-                                    SetBlock((ushort)(i + 1), j, k, liquid, PlayerTeam.None);
-                                }
-                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
-                                {
-                                    SetBlock(i, j, (ushort)(k + 1), liquid, PlayerTeam.None);
-                                }
-                            }
-
-                            //check for conflicting lava//may need to check bounds
-                            if (opposing != BlockType.None)
-                            {
-                                BlockType transform = BlockType.Rock;
-
-                                if (i > 0 && blockList[i - 1, j, k] == opposing)
-                                {
-                                    SetBlock((ushort)(i - 1), j, k, transform, PlayerTeam.None);
-                                }
-                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == opposing)
-                                {
-                                    SetBlock((ushort)(i + 1), j, k, transform, PlayerTeam.None);
-                                }
-                                if (j > 0 && blockList[i, j - 1, k] == opposing)
-                                {
-                                    SetBlock(i, (ushort)(j - 1), k, transform, PlayerTeam.None);
-                                }
-                                if (j < MAPSIZE - 1 && blockList[i, (ushort)(j + 1), k] == opposing)
-                                {
-                                    SetBlock(i, (ushort)(j + 1), k, transform, PlayerTeam.None);
-                                }
-                                if (k > 0 && blockList[i, j, k - 1] == opposing)
-                                {
-                                    SetBlock(i, j, (ushort)(k - 1), transform, PlayerTeam.None);
-                                }
-                                if (k < MAPSIZE - 1 && blockList[i, j, k + 1] == opposing)
-                                {
-                                    SetBlock(i, j, (ushort)(k + 1), transform, PlayerTeam.None);
-                                }
-
-                                if (liquid == BlockType.Water)//make mud
-                                {
-                                    if (typeBelow == BlockType.Dirt)
-                                    {
-                                        
-                                        SetBlock(i, (ushort)(j - 1), k, BlockType.Mud, PlayerTeam.None);
-                                        blockListContent[i, j-1, k, 0] = 480;//two minutes @ 250ms 
-                                    }
-                                }
-                            }
-                            if (typeBelow != BlockType.None && typeBelow != liquid)//none//trying radius fill
-                            {
-                                for (ushort a = (ushort)(i - 1); a < i + 2; a++)
-                                {
-                                    for (ushort b = (ushort)(k - 1); b < k + 2; b++)
-                                    {
-                                        if (a == (ushort)(i - 1) && b == (ushort)(k - 1))
+                                        BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
+                                        if (typeAbove == BlockType.Road)
                                         {
-                                            continue;
-                                        }
-                                        else if (a == i + 1 && b == k + 1)
-                                        {
-                                            continue;
-                                        }
-                                        else if (a == i - 1 && b == k + 1)
-                                        {
-                                            continue;
-                                        }
-                                        else if (a == i + 1 && b == (ushort)(k - 1))
-                                        {
-                                            continue;
-                                        }
-
-                                        if (blockList[i, j, k] != BlockType.None)//has our water block moved on us?
-                                        {
-                                            //water slides if standing on an edge
-                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j - 1 > 0)
-                                                if (blockList[a, j - 1, b] == BlockType.None)
-                                                {
-                                                    SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
-                                                    SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                                }
+                                            SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
                                         }
                                     }
                                 }
-                            }
-                            else if (typeBelow == liquid || typeBelow == BlockType.None)
-                            {
-                                ushort maxradius = 1;//1
 
-                                while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
+                                if (liquid == BlockType.Lava && blockListContent[i, j, k, 0] > 0)//upcoming volcano
                                 {
-                                    for (ushort a = (ushort)(-maxradius + i); a <= maxradius + i; a++)
-                                    {
-                                        for (ushort b = (ushort)(-maxradius + k); b <= maxradius + k; b++)
+                                    if (blockList[i + 1, j, k] == BlockType.None || blockList[i - 1, j, k] == BlockType.None || blockList[i, j, k + 1] == BlockType.None || blockList[i, j, k - 1] == BlockType.None || blockList[i + 1, j, k] == BlockType.Lava || blockList[i - 1, j, k] == BlockType.Lava || blockList[i, j, k + 1] == BlockType.Lava || blockList[i, j, k - 1] == BlockType.Lava)
+                                    {//if air surrounds the magma, then decrease volcanos power
+                                        blockListContent[i, j, k, 0] = blockListContent[i, j, k, 0] - 1;
+                                        blockListContent[i, j, k, 1] = 240 + blockListContent[i, j, k, 0] * 4;//temperature lowers as volcano gets further from its source
+                                    }
+
+                                    int x = randGen.Next(-1, 1);
+                                    int z = randGen.Next(-1, 1);
+
+                                    if (i + x > 0 && i + x < MAPSIZE - 1 && k + z > 0 && k + z < MAPSIZE - 1 && j + 1 < MAPSIZE - 1)
+                                        if (blockList[i + x, j + 1, k + z] != BlockType.Rock)
                                         {
-                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j - 1 > 0)
-                                                if (blockList[a, j - 1, b] == BlockType.None)
-                                                {
-                                                    if (blockTrace(a, (ushort)(j - 1), b, i, (ushort)(j - 1), k, liquid))//needs to be a pathfind
+                                            SetBlock((ushort)(i + x), (ushort)(j + 1), (ushort)(k + z), liquid, PlayerTeam.None);
+                                            blockListContent[i + x, j + 1, k + z, 0] = blockListContent[i, j, k, 0] - 1;//volcano strength decreases every upblock
+                                            blockListContent[i + x, j + 1, k + z, 1] = randGen.Next(blockListContent[i, j, k, 0]*3, blockListContent[i, j, k, 0]*4);//give it temperature
+                                        }
+
+                                }
+
+                                if (typeBelow != liquid && varGetB("insane") || liquid == BlockType.Fire)
+                                {
+                                    if (liquid == BlockType.Fire && blockListContent[i, j, k, 0] == 0)
+                                    {
+                                    }
+                                    else
+                                    {
+                                        if (i > 0 && blockList[i - 1, j, k] == BlockType.None)
+                                        {
+                                            SetBlock((ushort)(i - 1), j, k, liquid, PlayerTeam.None);
+                                            if (liquid == BlockType.Fire)
+                                            {
+                                                if (blockListContent[i, j, k, 0] > 5)
+                                                    blockListContent[i - 1, j, k, 0] = 1;
+                                            }
+                                        }
+                                        if (k > 0 && blockList[i, j, k - 1] == BlockType.None)
+                                        {
+                                            SetBlock(i, j, (ushort)(k - 1), liquid, PlayerTeam.None);
+                                            if (liquid == BlockType.Fire)
+                                            {
+                                                if (blockListContent[i, j, k, 0] > 5)
+                                                    blockListContent[i, j, k - 1, 0] = 1;
+                                            }
+                                        }
+                                        if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
+                                        {
+                                            SetBlock((ushort)(i + 1), j, k, liquid, PlayerTeam.None);
+                                            if (liquid == BlockType.Fire)
+                                            {
+                                                if (blockListContent[i, j, k, 0] > 5)
+                                                    blockListContent[i + 1, j, k, 0] = 1;
+                                            }
+                                        }
+                                        if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
+                                        {
+                                            SetBlock(i, j, (ushort)(k + 1), liquid, PlayerTeam.None);
+                                            if (liquid == BlockType.Fire)
+                                            {
+                                                if (blockListContent[i, j, k, 0] > 5)
+                                                    blockListContent[i, j, k + 1, 0] = 1;
+                                            }
+                                        }
+                                    }
+
+                                    if (liquid == BlockType.Fire && blockListContent[i, j, k, 0] > 0)//flame explosion
+                                    {
+                                        blockListContent[i, j, k, 0] = blockListContent[i, j, k, 0] - 1;
+                                        if ((int)j < MAPSIZE - 1 && blockList[i, j + 1, k] == BlockType.None)
+                                        {
+                                            SetBlock(i, (ushort)(j + 1), k, liquid, PlayerTeam.None);
+                                            blockListContent[i, j + 1, k, 0] = blockListContent[i, j, k, 0] - 1;//strength decreases every upblock
+                                        }
+                                    }
+                                    else if (liquid == BlockType.Fire)
+                                    {
+                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                    }
+                                }
+
+                                //check for conflicting lava//may need to check bounds
+                                if (opposing != BlockType.None)
+                                {
+                                    BlockType transform = BlockType.Rock;
+
+                                    if (i > 0 && blockList[i - 1, j, k] == opposing)
+                                    {
+                                        SetBlock((ushort)(i - 1), j, k, transform, PlayerTeam.None);
+                                    }
+                                    if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == opposing)
+                                    {
+                                        SetBlock((ushort)(i + 1), j, k, transform, PlayerTeam.None);
+                                    }
+                                    if (j > 0 && blockList[i, j - 1, k] == opposing)
+                                    {
+                                        SetBlock(i, (ushort)(j - 1), k, transform, PlayerTeam.None);
+                                    }
+                                    if (j < MAPSIZE - 1 && blockList[i, (ushort)(j + 1), k] == opposing)
+                                    {
+                                        SetBlock(i, (ushort)(j + 1), k, transform, PlayerTeam.None);
+                                    }
+                                    if (k > 0 && blockList[i, j, k - 1] == opposing)
+                                    {
+                                        SetBlock(i, j, (ushort)(k - 1), transform, PlayerTeam.None);
+                                    }
+                                    if (k < MAPSIZE - 1 && blockList[i, j, k + 1] == opposing)
+                                    {
+                                        SetBlock(i, j, (ushort)(k + 1), transform, PlayerTeam.None);
+                                    }
+
+                                    if (liquid == BlockType.Water)//make mud
+                                    {
+                                        if (typeBelow == BlockType.Dirt)
+                                        {
+
+                                            SetBlock(i, (ushort)(j - 1), k, BlockType.Mud, PlayerTeam.None);
+                                            blockListContent[i, j - 1, k, 0] = 480;//two minutes @ 250ms 
+                                        }
+                                    }
+                                }
+                                if (typeBelow != BlockType.None && typeBelow != liquid)//none//trying radius fill
+                                {
+                                    for (ushort a = (ushort)(i - 1); a < i + 2; a++)
+                                    {
+                                        for (ushort b = (ushort)(k - 1); b < k + 2; b++)
+                                        {
+                                            if (a == (ushort)(i - 1) && b == (ushort)(k - 1))
+                                            {
+                                                continue;
+                                            }
+                                            else if (a == i + 1 && b == k + 1)
+                                            {
+                                                continue;
+                                            }
+                                            else if (a == i - 1 && b == k + 1)
+                                            {
+                                                continue;
+                                            }
+                                            else if (a == i + 1 && b == (ushort)(k - 1))
+                                            {
+                                                continue;
+                                            }
+
+                                            if (blockList[i, j, k] != BlockType.None)//has our water block moved on us?
+                                            {
+                                                //water slides if standing on an edge
+                                                if (a > 0 && b > 0 && a < 64 && b < 64 && j - 1 > 0)
+                                                    if (blockList[a, j - 1, b] == BlockType.None)
                                                     {
                                                         SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
-                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
-                                                        maxradius = 30;
-                                                        a = 65;
-                                                        b = 65;
+                                                        blockListContent[a, j - 1, b, 1] = blockListContent[i, j, k, 1];
+                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
                                                     }
-                                                }
+                                            }
                                         }
-
                                     }
-                                    maxradius += 1;//prevent water spreading too large, this is mainly to stop loop size getting too large
                                 }
-                                if (maxradius != 30)//block could not find a new home
+                                else if (typeBelow == liquid || typeBelow == BlockType.None)
                                 {
-                                    flowSleep[i, j, k] = true;
-                                    continue;//skip the surround check
-                                }
-                            }
-                            //extra checks for sleep
-                            uint surround = 0;
-                            if (blockList[i, j, k] == liquid)
-                            {
-                                for (ushort a = (ushort)(-1 + i); a <= 1 + i; a++)
-                                {
-                                    for (ushort b = (ushort)(-1 + j); b <= 1 + j; b++)
+                                    ushort maxradius = 1;//1
+
+                                    while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
                                     {
-                                        for (ushort c = (ushort)(-1 + k); c <= 1 + k; c++)
+                                        for (ushort a = (ushort)(-maxradius + i); a <= maxradius + i; a++)
                                         {
-                                            if (a > 0 && b > 0 && c > 0 && a < 64 && b < 64 && c < 64)
+                                            for (ushort b = (ushort)(-maxradius + k); b <= maxradius + k; b++)
                                             {
-                                                if (blockList[a, b, c] != BlockType.None)
-                                                {
-                                                    surround += 1;//block is surrounded by types it cant move through
-                                                }
+                                                if (a > 0 && b > 0 && a < 64 && b < 64 && j - 1 > 0)
+                                                    if (blockList[a, j - 1, b] == BlockType.None)
+                                                    {
+                                                        if (blockTrace(a, (ushort)(j - 1), b, i, (ushort)(j - 1), k, liquid))//needs to be a pathfind
+                                                        {
+
+                                                            if (blockListContent[i, j, k, 0] > 0 && liquid == BlockType.Lava)
+                                                            {
+                                                                SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
+                                                                blockListContent[a, j - 1, b, 1] = 240 + blockListContent[i, j, k, 0] * 4 + randGen.Next(1, 20);//core stream
+                                                            }
+                                                            else if (blockListContent[i, j, k, 1] > 0)
+                                                            {
+                                                                SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
+                                                                blockListContent[a, j - 1, b, 1] = 240 + randGen.Next(1, 20);// blockListContent[i, j, k, 0] * 20;
+                                                                SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
+                                                            }
+                                                            else
+                                                            {
+                                                                SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
+                                                                SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
+                                                            }
+                                                            maxradius = 30;
+                                                            a = 65;
+                                                            b = 65;
+                                                        }
+                                                    }
                                             }
-                                            else//surrounded by edge of map
-                                            {
-                                                surround += 1;
-                                            }
+
                                         }
+                                        maxradius += 1;//prevent water spreading too large, this is mainly to stop loop size getting too large
                                     }
-                                }
-                                if (surround >= 27)
-                                {
-                                    flowSleep[i, j, k] = true;
-                                }
-                            }
-                        }
-                        else if (blockList[i, j, k] == BlockType.Pump && blockListContent[i, j, k, 0] > 0)// content0 = determines if on
-                        {//dopumpstuff
-                            BlockType pumpheld = BlockType.None;
-
-                            if (i + blockListContent[i, j, k, 2] < MAPSIZE && j + blockListContent[i, j, k, 3] < MAPSIZE && k + blockListContent[i, j, k, 4] < MAPSIZE && i + blockListContent[i, j, k, 2] > 0 && j + blockListContent[i, j, k, 3] > 0 && k + blockListContent[i, j, k, 4] > 0)
-                            {
-                                if (blockList[i + blockListContent[i, j, k, 2], j + blockListContent[i, j, k, 3], k + blockListContent[i, j, k, 4]] == BlockType.Water)
-                                {
-                                    pumpheld = BlockType.Water;
-                                    SetBlock((ushort)(i + blockListContent[i, j, k, 2]), (ushort)(j + blockListContent[i, j, k, 3]), (ushort)(k + blockListContent[i, j, k, 4]), BlockType.None, PlayerTeam.None);
-                                }
-                                if (blockList[i + blockListContent[i, j, k, 2], j + blockListContent[i, j, k, 3], k + blockListContent[i, j, k, 4]] == BlockType.Lava)
-                                {
-                                    pumpheld = BlockType.Lava;
-                                    SetBlock((ushort)(i + blockListContent[i, j, k, 2]), (ushort)(j + blockListContent[i, j, k, 3]), (ushort)(k + blockListContent[i, j, k, 4]), BlockType.None, PlayerTeam.None);
-                                }
-
-                                if (pumpheld != BlockType.None)
-                                {
-                                    if (i + blockListContent[i, j, k, 5] < MAPSIZE && j + blockListContent[i, j, k, 6] < MAPSIZE && k + blockListContent[i, j, k, 7] < MAPSIZE && i + blockListContent[i, j, k, 5] > 0 && j + blockListContent[i, j, k, 6] > 0 && k + blockListContent[i, j, k, 7] > 0)
+                                    if (maxradius != 30)//block could not find a new home
                                     {
-                                        if (blockList[i + blockListContent[i, j, k, 5], j + blockListContent[i, j, k, 6], k + blockListContent[i, j, k, 7]] == BlockType.None)
-                                        {//check bounds
-                                            SetBlock((ushort)(i + blockListContent[i, j, k, 5]), (ushort)(j + blockListContent[i, j, k, 6]), (ushort)(k + blockListContent[i, j, k, 7]), pumpheld, PlayerTeam.None);//places its contents in desired direction
-                                        }
-                                        else if (blockList[i + blockListContent[i, j, k, 5], j + blockListContent[i, j, k, 6], k + blockListContent[i, j, k, 7]] == pumpheld)//exit must be clear or same substance
+                                        flowSleep[i, j, k] = true;
+                                        continue;//skip the surround check
+                                    }
+                                }
+                                //extra checks for sleep
+                                uint surround = 0;
+                                if (blockList[i, j, k] == liquid)
+                                {
+                                    for (ushort a = (ushort)(-1 + i); a <= 1 + i; a++)
+                                    {
+                                        for (ushort b = (ushort)(-1 + j); b <= 1 + j; b++)
                                         {
-                                            for (ushort m = 2; m < 10; m++)//multiply exit area to fake upward/sideward motion
+                                            for (ushort c = (ushort)(-1 + k); c <= 1 + k; c++)
                                             {
-                                                if (i + blockListContent[i, j, k, 5] * m < MAPSIZE && j + blockListContent[i, j, k, 6] * m < MAPSIZE && k + blockListContent[i, j, k, 7] * m < MAPSIZE && i + blockListContent[i, j, k, 5] * m > 0 && j + blockListContent[i, j, k, 6] * m > 0 && k + blockListContent[i, j, k, 7] * m > 0)
+                                                if (a > 0 && b > 0 && c > 0 && a < 64 && b < 64 && c < 64)
                                                 {
-                                                    if (blockList[i + blockListContent[i, j, k, 5] * m, j + blockListContent[i, j, k, 6] * m, k + blockListContent[i, j, k, 7] * m] == BlockType.None)
+                                                    if (blockList[a, b, c] != BlockType.None)
                                                     {
-                                                        SetBlock((ushort)(i + blockListContent[i, j, k, 5] * m), (ushort)(j + blockListContent[i, j, k, 6] * m), (ushort)(k + blockListContent[i, j, k, 7] * m), pumpheld, PlayerTeam.None);//places its contents in desired direction at a distance
-                                                        break;//done with this pump
-                                                    }
-                                                    else// if (blockList[i + blockListContent[i, j, k, 5] * m, j + blockListContent[i, j, k, 6] * m, k + blockListContent[i, j, k, 7] * m] != pumpheld)//check that we're not going through walls to pump this
-                                                    {
-                                                        break;//pipe has run aground .. and dont refund the intake
+                                                        surround += 1;//block is surrounded by types it cant move through
                                                     }
                                                 }
+                                                else//surrounded by edge of map
+                                                {
+                                                    surround += 1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (surround >= 27)
+                                    {
+                                        flowSleep[i, j, k] = true;
+                                    }
+                                }
+                            }
+                            else if (blockList[i, j, k] == BlockType.Pump && blockListContent[i, j, k, 0] > 0)// content0 = determines if on
+                            {//dopumpstuff
+                                BlockType pumpheld = BlockType.None;
 
+                                if (i + blockListContent[i, j, k, 2] < MAPSIZE && j + blockListContent[i, j, k, 3] < MAPSIZE && k + blockListContent[i, j, k, 4] < MAPSIZE && i + blockListContent[i, j, k, 2] > 0 && j + blockListContent[i, j, k, 3] > 0 && k + blockListContent[i, j, k, 4] > 0)
+                                {
+                                    if (blockList[i + blockListContent[i, j, k, 2], j + blockListContent[i, j, k, 3], k + blockListContent[i, j, k, 4]] == BlockType.Water)
+                                    {
+                                        pumpheld = BlockType.Water;
+                                        SetBlock((ushort)(i + blockListContent[i, j, k, 2]), (ushort)(j + blockListContent[i, j, k, 3]), (ushort)(k + blockListContent[i, j, k, 4]), BlockType.None, PlayerTeam.None);
+                                    }
+                                    if (blockList[i + blockListContent[i, j, k, 2], j + blockListContent[i, j, k, 3], k + blockListContent[i, j, k, 4]] == BlockType.Lava)
+                                    {
+                                        pumpheld = BlockType.Lava;
+                                        SetBlock((ushort)(i + blockListContent[i, j, k, 2]), (ushort)(j + blockListContent[i, j, k, 3]), (ushort)(k + blockListContent[i, j, k, 4]), BlockType.None, PlayerTeam.None);
+                                    }
+
+                                    if (pumpheld != BlockType.None)
+                                    {
+                                        if (i + blockListContent[i, j, k, 5] < MAPSIZE && j + blockListContent[i, j, k, 6] < MAPSIZE && k + blockListContent[i, j, k, 7] < MAPSIZE && i + blockListContent[i, j, k, 5] > 0 && j + blockListContent[i, j, k, 6] > 0 && k + blockListContent[i, j, k, 7] > 0)
+                                        {
+                                            if (blockList[i + blockListContent[i, j, k, 5], j + blockListContent[i, j, k, 6], k + blockListContent[i, j, k, 7]] == BlockType.None)
+                                            {//check bounds
+                                                SetBlock((ushort)(i + blockListContent[i, j, k, 5]), (ushort)(j + blockListContent[i, j, k, 6]), (ushort)(k + blockListContent[i, j, k, 7]), pumpheld, PlayerTeam.None);//places its contents in desired direction
+                                            }
+                                            else if (blockList[i + blockListContent[i, j, k, 5], j + blockListContent[i, j, k, 6], k + blockListContent[i, j, k, 7]] == pumpheld)//exit must be clear or same substance
+                                            {
+                                                for (ushort m = 2; m < 10; m++)//multiply exit area to fake upward/sideward motion
+                                                {
+                                                    if (i + blockListContent[i, j, k, 5] * m < MAPSIZE && j + blockListContent[i, j, k, 6] * m < MAPSIZE && k + blockListContent[i, j, k, 7] * m < MAPSIZE && i + blockListContent[i, j, k, 5] * m > 0 && j + blockListContent[i, j, k, 6] * m > 0 && k + blockListContent[i, j, k, 7] * m > 0)
+                                                    {
+                                                        if (blockList[i + blockListContent[i, j, k, 5] * m, j + blockListContent[i, j, k, 6] * m, k + blockListContent[i, j, k, 7] * m] == BlockType.None)
+                                                        {
+                                                            SetBlock((ushort)(i + blockListContent[i, j, k, 5] * m), (ushort)(j + blockListContent[i, j, k, 6] * m), (ushort)(k + blockListContent[i, j, k, 7] * m), pumpheld, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                            break;//done with this pump
+                                                        }
+                                                        else// if (blockList[i + blockListContent[i, j, k, 5] * m, j + blockListContent[i, j, k, 6] * m, k + blockListContent[i, j, k, 7] * m] != pumpheld)//check that we're not going through walls to pump this
+                                                        {
+                                                            break;//pipe has run aground .. and dont refund the intake
+                                                        }
+                                                    }
+
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                        else if (blockList[i, j, k] == BlockType.Spring)
-                        {//dospringstuff
-                            if (blockList[i, j - 1, k] == BlockType.None)
-                            {
-                                SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
-                            }
-                        }
-                        else if (blockList[i, j, k] == BlockType.Mud)//mud dries out
-                        {
-                            if (blockList[i, j-1, k] != BlockType.Water)
-                            if (blockListContent[i, j, k, 0] < 1)
-                            {
-                                blockListContent[i, j, k, 0] = 0;
-                                SetBlock(i, j, k, BlockType.Dirt, PlayerTeam.None);
-                            }
-                            else
-                            {
-                                blockListContent[i, j, k, 0] -= 1;
-                            }
-                        }
-                        else if (blockList[i, j, k] == BlockType.Sand)//sand falls straight down and moves over edges
-                        {
-                            if (j - 1 > 0)
-                            {
+                            else if (blockList[i, j, k] == BlockType.Spring)
+                            {//dospringstuff
                                 if (blockList[i, j - 1, k] == BlockType.None)
                                 {
-                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Sand, PlayerTeam.None);
-                                    SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                    continue;
-                                }
-                                for (ushort m = 1; m < 2; m++)//how many squares to fall over
-                                {
-                                    if (i + m < MAPSIZE)
-                                        if (blockList[i + m, j - 1, k] == BlockType.None)
-                                        {
-                                            SetBlock((ushort)(i + m), (ushort)(j - 1), k, BlockType.Sand, PlayerTeam.None);
-                                            SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                            continue;
-                                        }
-                                    if (i - m > 0)
-                                        if (blockList[i - m, j - 1, k] == BlockType.None)
-                                        {
-                                            SetBlock((ushort)(i - m), (ushort)(j - 1), k, BlockType.Sand, PlayerTeam.None);
-                                            SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                            continue;
-                                        }
-                                    if (k + m < MAPSIZE)
-                                        if (blockList[i, j - 1, k + m] == BlockType.None)
-                                        {
-                                            SetBlock(i, (ushort)(j - 1), (ushort)(k + m), BlockType.Sand, PlayerTeam.None);
-                                            SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                            continue;
-                                        }
-                                    if (k - m > 0)
-                                        if (blockList[i, j - 1, k - m] == BlockType.None)
-                                        {
-                                            SetBlock(i, (ushort)(j - 1), (ushort)(k - m), BlockType.Sand, PlayerTeam.None);
-                                            SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                            continue;
-                                        }
+                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
                                 }
                             }
-                        }
-                        else if (blockList[i, j, k] == BlockType.Dirt)//loose dirt falls straight down
-                        {
-                            if (j + 1 < MAPSIZE && j - 1 > 0 && i - 1 > 0 && i + 1 < MAPSIZE && k - 1 > 0 && k + 1 < MAPSIZE)
+                            else if (blockList[i, j, k] == BlockType.MagmaVent)
+                            {//dospringstuff
                                 if (blockList[i, j - 1, k] == BlockType.None)
-                                if (blockList[i, j + 1, k] == BlockType.None && blockList[i + 1, j, k] == BlockType.None && blockList[i - 1, j, k] == BlockType.None && blockList[i, j, k+1] == BlockType.None && blockList[i, j, k-1] == BlockType.None)
-                                {//no block above or below, so fall
-                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Dirt, PlayerTeam.None);
-                                    SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                    continue;
-                                }   
-                        }
-                 
+                                {
+                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Lava, PlayerTeam.None);
+                                }
+                            }
+                            else if (blockList[i, j, k] == BlockType.Mud)//mud dries out
+                            {
+                                if (blockList[i, j - 1, k] != BlockType.Water)
+                                    if (blockListContent[i, j, k, 0] < 1)
+                                    {
+                                        blockListContent[i, j, k, 0] = 0;
+                                        SetBlock(i, j, k, BlockType.Dirt, PlayerTeam.None);
+                                    }
+                                    else
+                                    {
+                                        blockListContent[i, j, k, 0] -= 1;
+                                    }
+                            }
+                            else if (blockList[i, j, k] == BlockType.Sand)//sand falls straight down and moves over edges
+                            {
+                                if (j - 1 > 0)
+                                {
+                                    if (blockList[i, j - 1, k] == BlockType.None)
+                                    {
+                                        SetBlock(i, (ushort)(j - 1), k, BlockType.Sand, PlayerTeam.None);
+                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                        continue;
+                                    }
+                                    for (ushort m = 1; m < 2; m++)//how many squares to fall over
+                                    {
+                                        if (i + m < MAPSIZE)
+                                            if (blockList[i + m, j - 1, k] == BlockType.None)
+                                            {
+                                                SetBlock((ushort)(i + m), (ushort)(j - 1), k, BlockType.Sand, PlayerTeam.None);
+                                                SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                                continue;
+                                            }
+                                        if (i - m > 0)
+                                            if (blockList[i - m, j - 1, k] == BlockType.None)
+                                            {
+                                                SetBlock((ushort)(i - m), (ushort)(j - 1), k, BlockType.Sand, PlayerTeam.None);
+                                                SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                                continue;
+                                            }
+                                        if (k + m < MAPSIZE)
+                                            if (blockList[i, j - 1, k + m] == BlockType.None)
+                                            {
+                                                SetBlock(i, (ushort)(j - 1), (ushort)(k + m), BlockType.Sand, PlayerTeam.None);
+                                                SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                                continue;
+                                            }
+                                        if (k - m > 0)
+                                            if (blockList[i, j - 1, k - m] == BlockType.None)
+                                            {
+                                                SetBlock(i, (ushort)(j - 1), (ushort)(k - m), BlockType.Sand, PlayerTeam.None);
+                                                SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                                continue;
+                                            }
+                                    }
+                                }
+                            }
+                            else if (blockList[i, j, k] == BlockType.Dirt)//loose dirt falls straight down
+                            {
+                                if (j + 1 < MAPSIZE && j - 1 > 0 && i - 1 > 0 && i + 1 < MAPSIZE && k - 1 > 0 && k + 1 < MAPSIZE)
+                                    if (blockList[i, j - 1, k] == BlockType.None)
+                                        if (blockList[i, j + 1, k] == BlockType.None && blockList[i + 1, j, k] == BlockType.None && blockList[i - 1, j, k] == BlockType.None && blockList[i, j, k + 1] == BlockType.None && blockList[i, j, k - 1] == BlockType.None)
+                                        {//no block above or below, so fall
+                                            SetBlock(i, (ushort)(j - 1), k, BlockType.Dirt, PlayerTeam.None);
+                                            SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                            continue;
+                                        }
+                            }
+                    }
         }
         public void Disturb(ushort i, ushort j, ushort k)
         {
@@ -2936,7 +3060,14 @@ namespace Infiniminer
                 TriggerConstructionGunAnimation(player, 0.5f);
 
                 // Build the block.
+               // if (blockType == BlockType.Lava)
+                    //blockType = BlockType.Fire;
+
                 SetBlock(x, y, z, blockType, player.Team);
+                if (blockType == BlockType.Lava)//Fire)//volcano testing
+                {
+                    blockListContent[x, y, z, 0] = 30;
+                }
                 player.Ore -= blockCost;
                 SendResourceUpdate(player);
 
@@ -3041,6 +3172,9 @@ namespace Infiniminer
 
         public void ExplosionEffectAtPoint(int x, int y, int z)
         {
+            SetBlock((ushort)x, (ushort)y, (ushort)z, BlockType.Fire, PlayerTeam.None);//might be better at detonate
+            blockListContent[x, y, z, 0] = 6;
+
             // Send off the explosion to clients.
             NetBuffer msgBuffer = netServer.CreateBuffer();
             msgBuffer.Write((byte)InfiniminerMessage.TriggerExplosion);
@@ -3095,7 +3229,6 @@ namespace Infiniminer
                                 case BlockType.Jump:
                                 case BlockType.Explosive:
                                 case BlockType.Lava:
-                                case BlockType.Spring:
                                 case BlockType.Road:
                                     destroyBlock = true;
                                     break;
@@ -3144,7 +3277,6 @@ namespace Infiniminer
                                     case BlockType.Jump:
                                     case BlockType.Explosive:
                                     case BlockType.Lava:
-                                    case BlockType.Spring:
                                     case BlockType.Road:
                                         destroyBlock = true;
                                         break;

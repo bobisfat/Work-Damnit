@@ -441,7 +441,7 @@ namespace Infiniminer
             netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
 
-        public bool allWeps = false; //Needs to be true on sandbox servers, though that requires a server mod
+        public bool allWeps = true; //Needs to be true on sandbox servers, though that requires a server mod
 
         public void equipWeps()
         {

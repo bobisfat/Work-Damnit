@@ -37,6 +37,8 @@ namespace Infiniminer
         TransBlue,
         Water,
         Spring,
+        MagmaVent,
+        Fire,
         Vacuum,
         MAXIMUM
     }
@@ -88,6 +90,8 @@ namespace Infiniminer
         BeaconRed,
         BeaconBlue,
         Spring,
+        MagmaVent,
+        Fire,
         Water,
         TransRed,   // THESE MUST BE THE LAST TWO TEXTURES
         TransBlue,
@@ -123,6 +127,8 @@ namespace Infiniminer
                 case BlockType.Generator:
                 case BlockType.Controller:
                 case BlockType.Pump:
+                case BlockType.Lava:
+                case BlockType.Dirt:
                 case BlockType.Pipe:
                     return 10;
 
@@ -178,6 +184,10 @@ namespace Infiniminer
                     return BlockTexture.Rock;
                 case BlockType.Spring:
                     return BlockTexture.Spring;
+                case BlockType.MagmaVent:
+                    return BlockTexture.MagmaVent;
+                case BlockType.Fire:
+                    return BlockTexture.Fire;
                 case BlockType.Ore:
                     return BlockTexture.Ore;
                 case BlockType.Gold:

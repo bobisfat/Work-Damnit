@@ -182,7 +182,8 @@ namespace Infiniminer
             blockTextures[(byte)BlockTexture.Pipe] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_pipe"));
             blockTextures[(byte)BlockTexture.Pump] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_pump"));
             blockTextures[(byte)BlockTexture.Spring] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_spring"));
-
+            blockTextures[(byte)BlockTexture.MagmaVent] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_magmavent"));
+            blockTextures[(byte)BlockTexture.Fire] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_fire"));
             // Load our effects.
             basicEffect = gameInstance.Content.Load<Effect>("effect_basic");
 
@@ -224,6 +225,8 @@ namespace Infiniminer
             if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red && blockType == BlockType.TransRed)
                 return true;
             if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue && blockType == BlockType.TransBlue)
+                return true;
+            if (blockType == BlockType.Fire)
                 return true;
             if (blockType == BlockType.Water)
                 return true;
@@ -287,7 +290,7 @@ namespace Infiniminer
                         continue;
 
                     // Actually render.
-                    RenderVertexList(graphicsDevice, regionBuffer, blockTextures[(byte)blockTexture].Texture, blockTextures[(byte)blockTexture].LODColor, renderTranslucent, blockTexture == BlockTexture.Lava, (float)gameTime.TotalRealTime.TotalSeconds);
+                    RenderVertexList(graphicsDevice, regionBuffer, blockTextures[(byte)blockTexture].Texture, blockTextures[(byte)blockTexture].LODColor, renderTranslucent, blockTexture, (float)gameTime.TotalRealTime.TotalSeconds);
                 }
 
             // Apply posteffects.
@@ -295,12 +298,12 @@ namespace Infiniminer
                 bloomPosteffect.Draw(graphicsDevice);
         }
 
-        private void RenderVertexList(GraphicsDevice graphicsDevice, DynamicVertexBuffer vertexBuffer, Texture2D blockTexture, Color lodColor, bool renderTranslucent, bool renderLava, float elapsedTime)
+        private void RenderVertexList(GraphicsDevice graphicsDevice, DynamicVertexBuffer vertexBuffer, Texture2D blockTexture, Color lodColor, bool renderTranslucent, BlockTexture blocktex, float elapsedTime)
         {
             if (vertexBuffer == null)
                 return;
 
-            if (renderLava)
+            if (blocktex == BlockTexture.Lava)
             {
                 basicEffect.CurrentTechnique = basicEffect.Techniques["LavaBlock"];
                 basicEffect.Parameters["xTime"].SetValue(elapsedTime%5);
@@ -330,7 +333,7 @@ namespace Infiniminer
                 }
 
                 graphicsDevice.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
-                graphicsDevice.SamplerStates[0].MagFilter = TextureFilter.Point;
+                graphicsDevice.SamplerStates[0].MagFilter = TextureFilter.Linear;
                 graphicsDevice.VertexDeclaration = vertexDeclaration;
                 graphicsDevice.Vertices[0].SetSource(vertexBuffer, 0, VertexPositionTextureShade.SizeInBytes);
                 graphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, vertexBuffer.SizeInBytes / VertexPositionTextureShade.SizeInBytes / 3);
