@@ -777,11 +777,17 @@ namespace Infiniminer
                 case "restart":
                     {
                         if (authority >= 2){
-                            if ( sender!=null)
+                            if (sender != null)
                                 ConsoleWrite(sender.Handle + " is restarting the server.");
-                            disconnectAll();
+                            else
+                            {
+                                onsoleWrite("Restarting server in 5 seconds.");
+                            }
+                            //disconnectAll();
+                           
+                            SendServerMessage("Server restarting in 5 seconds.");
                             restartTriggered = true;
-                            restartTime = DateTime.Now;
+                            restartTime = DateTime.Now+TimeSpan.FromSeconds(5);
                         }
                     }
                     break;
@@ -1350,7 +1356,7 @@ namespace Infiniminer
         {
             foreach (Player p in playerList.Values)
             {
-                p.NetConn.Disconnect("",0);
+                p.NetConn.Disconnect("",0);  
             }
         }
 
@@ -2235,6 +2241,7 @@ namespace Infiniminer
                 if (restartTriggered && DateTime.Now > restartTime)
                 {
                     SaveLevel("autosave_" + (UInt64)DateTime.Now.ToBinary() + ".lvl");
+
                     netServer.Shutdown("The server is restarting.");
                     return true;
                 }
@@ -2569,7 +2576,7 @@ namespace Infiniminer
                                     SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
                                     continue;
                                 }
-                                for (ushort m = 1; m <= 2; m++)
+                                for (ushort m = 1; m < 2; m++)//how many squares to fall over
                                 {
                                     if (i + m < MAPSIZE)
                                         if (blockList[i + m, j - 1, k] == BlockType.None)

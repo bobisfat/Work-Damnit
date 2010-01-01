@@ -36,7 +36,7 @@ namespace Infiniminer
         public string redName = "Red";
         public Color blue = Defines.IM_BLUE;
         public string blueName = "Blue";
-
+        IPEndPoint lastConnection;
         public KeyBindHandler keyBinds = new KeyBindHandler();
 
         public bool anyPacketsReceived = false;
@@ -147,7 +147,13 @@ namespace Infiniminer
                     case NetMessageType.StatusChanged:
                         {
                             if (propertyBag.netClient.Status == NetConnectionStatus.Disconnected)
-                                ChangeState("Infiniminer.States.ServerBrowserState");
+                            {
+                                ChangeState("Infiniminer.States.ServerBrowserState");//needed to reset 
+
+                                Thread.Sleep(50);
+                                JoinGame(lastConnection);//attempts to reconnect
+                                ChangeState("Infiniminer.States.LoadingState");
+                            }
                         }
                         break;
                     case NetMessageType.ConnectionApproval:
@@ -231,6 +237,8 @@ namespace Infiniminer
                                                     ChangeState("Infiniminer.States.TeamSelectionState");
                                                     if (!NoSound)
                                                         MediaPlayer.Stop();
+
+                                                    lastConnection = new IPEndPoint(propertyBag.netClient.ServerConnection.RemoteEndpoint.Address, 5565);
                                                     propertyBag.blockEngine.DownloadComplete();
                                                 }
                                             }
