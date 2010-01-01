@@ -16,6 +16,7 @@ namespace Infiniminer
         public Int32[, ,,] blockListContent = null;
         PlayerTeam[, ,] blockCreatorTeam = null;
         public int MAPSIZE = 64;
+        Thread physics;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
         bool sleeping = true;
         int lavaBlockCount = 0;
@@ -499,6 +500,10 @@ namespace Infiniminer
             Console.SetWindowSize(1, 1);
             Console.SetBufferSize(80, CONSOLE_SIZE + 4);
             Console.SetWindowSize(80, CONSOLE_SIZE + 4);
+
+            physics = new Thread(new ThreadStart(this.DoPhysics));
+            physics.Priority = ThreadPriority.Normal;
+            physics.Start();
         }
 
         public string GetExtraInfo()
@@ -1358,6 +1363,7 @@ namespace Infiniminer
             {
                 p.NetConn.Disconnect("",0);  
             }
+            playerList.Clear();
         }
 
         public void ConsoleRedraw()
@@ -1502,6 +1508,7 @@ namespace Infiniminer
         {
             physicsEnabled = false;
             Thread.Sleep(2);
+
             // Create our block world, translating the coordinates out of the cave generator (where Z points down)
             BlockType[, ,] worldData = CaveGenerator.GenerateCaveSystem(MAPSIZE, includeLava, oreFactor, includeWater);
             blockList = new BlockType[MAPSIZE, MAPSIZE, MAPSIZE];
@@ -1684,7 +1691,7 @@ namespace Infiniminer
 
             // Store the last time that we did a flow calculation.
             DateTime lastFlowCalc = DateTime.Now;
-            int secondflow = 0;
+
             //Check if we should autoload a level
             if (dataFile.Data.ContainsKey("autoload") && bool.Parse(dataFile.Data["autoload"]))
             {
@@ -1737,7 +1744,6 @@ namespace Infiniminer
                 ConsoleWrite(waterBlockCount + " water blocks, " + lavaBlockCount + " lava blocks.");           
             }
             
-
             //Caculate the shape of spherical tnt explosions
             CalculateExplosionPattern();
 
@@ -1749,13 +1755,9 @@ namespace Infiniminer
            
             DateTime lastFPScheck = DateTime.Now;
             double frameRate = 0;
-            Thread physics;
+            
             // Main server loop!
             ConsoleWrite("SERVER READY");
-
-            physics = new Thread(new ThreadStart(this.DoPhysics));
-            physics.Priority = ThreadPriority.Normal;
-            physics.Start();
 
             if (!physics.IsAlive)
             {
@@ -2243,7 +2245,10 @@ namespace Infiniminer
                     SaveLevel("autosave_" + (UInt64)DateTime.Now.ToBinary() + ".lvl");
 
                     netServer.Shutdown("The server is restarting.");
-                    return true;
+                    Thread.Sleep(100);
+
+                    physics.Abort();
+                    return true;//terminates server thread completely
                 }
 
                 // Pass control over to waiting threads.
