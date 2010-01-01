@@ -2604,8 +2604,9 @@ namespace Infiniminer
                         }
                         else if (blockList[i, j, k] == BlockType.Dirt)//loose dirt falls straight down
                         {
-                            if (j + 1 < MAPSIZE && j - 1 > 0)
-                                if (blockList[i, j - 1, k] == BlockType.None && blockList[i, j + 1, k] == BlockType.None)
+                            if (j + 1 < MAPSIZE && j - 1 > 0 && i - 1 > 0 && i + 1 < MAPSIZE && k - 1 > 0 && k + 1 < MAPSIZE)
+                                if (blockList[i, j - 1, k] == BlockType.None)
+                                if (blockList[i, j + 1, k] == BlockType.None && blockList[i + 1, j, k] == BlockType.None && blockList[i - 1, j, k] == BlockType.None && blockList[i, j, k+1] == BlockType.None && blockList[i, j, k-1] == BlockType.None)
                                 {//no block above or below, so fall
                                     SetBlock(i, (ushort)(j - 1), k, BlockType.Dirt, PlayerTeam.None);
                                     SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
