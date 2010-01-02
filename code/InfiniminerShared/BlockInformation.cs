@@ -32,6 +32,7 @@ namespace Infiniminer
         Generator,
         Controller,
         Pump,
+        Compressor,
         Pipe,
         TransRed,
         TransBlue,
@@ -83,6 +84,7 @@ namespace Infiniminer
         Generator,
         Controller,
         Pump,
+        Compressor,
         Pipe,
         Road,
         RoadTop,
@@ -127,6 +129,7 @@ namespace Infiniminer
                 case BlockType.Generator:
                 case BlockType.Controller:
                 case BlockType.Pump:
+                case BlockType.Compressor:
                 case BlockType.Lava:
                 case BlockType.Dirt:
                 case BlockType.Pipe:
@@ -166,6 +169,8 @@ namespace Infiniminer
                     return BlockTexture.Controller;
                 case BlockType.Pump:
                     return BlockTexture.Pump;
+                case BlockType.Compressor:
+                    return BlockTexture.Compressor;
                 case BlockType.Pipe:
                     return BlockTexture.Pipe;
                 case BlockType.Metal:

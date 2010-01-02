@@ -496,7 +496,7 @@ namespace Infiniminer
                 PlayerTools.Detonator,
                 PlayerTools.SpawnItem };
 
-                playerBlocks = new BlockType[17] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
+                playerBlocks = new BlockType[18] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
                                              playerTeam == PlayerTeam.Red ? BlockType.TransRed : BlockType.TransBlue,
                                              BlockType.Road,
                                              BlockType.Ladder,
@@ -511,6 +511,7 @@ namespace Infiniminer
                                              BlockType.Controller,
                                              BlockType.Generator,
                                              BlockType.Pump,
+                                             BlockType.Compressor,
                                              BlockType.Pipe,
                                              BlockType.Water };
             }
@@ -785,6 +786,10 @@ namespace Infiniminer
             else if (blockType == BlockType.Pump)
             {
                 return "8: On/Off 9: Change direction";
+            }
+            else if (blockType == BlockType.Compressor)
+            {
+                return "8: Compress/Decompress";
             }
             return "";
         }

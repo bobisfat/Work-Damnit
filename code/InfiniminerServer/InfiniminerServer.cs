@@ -1483,6 +1483,13 @@ namespace Infiniminer
                 blockListContent[x, y, z, 2] = 0;
                 blockListContent[x, y, z, 3] = 0;
             }
+            else if (blockType == BlockType.Compressor)
+            {
+                blockListContent[x, y, z, 0] = 0;//state
+                blockListContent[x, y, z, 1] = 0;//containtype
+                blockListContent[x, y, z, 2] = 0;//amount
+                blockListContent[x, y, z, 3] = 0;
+            }
             else if (blockType == BlockType.Pump)
             {
                 blockListContent[x, y, z, 0] = 0;//state
@@ -1705,6 +1712,7 @@ namespace Infiniminer
             //netServer.SimulatedLatencyVariance = 0.05f;
             //netServer.SimulatedLoss = 0.1f;
             //netServer.SimulatedDuplicates = 0.05f;
+            netServer.Configuration.SendBufferSize = 2048000;
             netServer.Start();
 
             // Initialize variables we'll use.
@@ -2130,7 +2138,7 @@ namespace Infiniminer
                                                 uint btny = msgBuffer.ReadUInt32();
                                                 uint btnz = msgBuffer.ReadUInt32();
 
-                                                if (blockList[btnx, btny, btnz] == BlockType.Pump || blockList[btnx, btny, btnz] == BlockType.Pipe || blockList[btnx, btny, btnz] == BlockType.Generator)
+                                                if (blockList[btnx, btny, btnz] == BlockType.Pump || blockList[btnx, btny, btnz] == BlockType.Pipe || blockList[btnx, btny, btnz] == BlockType.Generator || blockList[btnx, btny, btnz] == BlockType.Compressor)
                                                 {
                                                     if (Get3DDistance((int)btnx, (int)btny, (int)btnz, (int)player.Position.X, (int)player.Position.Y, (int)player.Position.Z) < 4)
                                                     {
@@ -2340,7 +2348,7 @@ namespace Infiniminer
         public void DoStuff()
         {
             //volcano frequency
-            if (randGen.Next(1, 500) == 1 && physicsEnabled)
+            if (1==0)//randGen.Next(1, 500) == 1 && physicsEnabled)
             {
                 bool volcanospawn = true;
                 while (volcanospawn == true)
@@ -2691,6 +2699,94 @@ namespace Infiniminer
                                                 }
                                             }
                                         }
+                                    }
+                                }
+                            }
+                            else if (blockList[i, j, k] == BlockType.Compressor)
+                            {//docompressorstuff
+                                if (blockListContent[i, j, k, 0] == 1)//active
+                                {
+                                    for (ushort a = (ushort)(-1 + i); a < 2 + i; a++)
+                                    {
+                                        for (ushort b = (ushort)(-1 + j); b < 2 + j; b++)
+                                        {
+                                            for (ushort c = (ushort)(-1 + k); c < 2 + k; c++)
+                                            {
+                                                if (a > 0 && b > 0 && c > 0 && a < 64 && b < 64 && c < 64)
+                                                {
+                                                    if (blockList[a, b, c] == BlockType.Water || blockList[a, b, c] == BlockType.Lava)
+                                                    {
+                                                        SetBlock((ushort)(a), (ushort)(b), (ushort)(c), BlockType.None, PlayerTeam.None);
+
+                                                        if (blockList[a, b, c] == BlockType.Water)
+                                                        {
+                                                            blockListContent[i, j, k, 1] = 1;// (int)(blockList[a, b, c]);
+                                                        }
+                                                        else//refuses to typecast from block to int using blockList
+                                                        {
+                                                            blockListContent[i, j, k, 1] = 2;// (int)(blockList[a, b, c]);
+                                                        }
+
+                                                        blockListContent[i, j, k, 2] += 1;
+                                                    }
+                                                    
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (blockListContent[i, j, k, 1] > 0)//has type
+                                    {
+                                        if (blockListContent[i, j, k, 2] > 0)//has content
+                                        {
+                                            if (blockList[i, j + 1, k] == BlockType.None)
+                                            {
+                                                if (blockListContent[i, j, k, 1] == 1)
+                                                {
+                                                    SetBlock(i, (ushort)(j + 1), k, BlockType.Water, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                }
+                                                else if (blockListContent[i, j, k, 1] == 2)
+                                                {
+                                                    SetBlock(i, (ushort)(j + 1), k, BlockType.Lava, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                }
+                                                blockListContent[i, j, k, 2] -= 1;
+                                                continue;
+                                            }
+                                            if (blockList[i, j + 1, k] == (BlockType)(blockListContent[i,j,k,1]))//exit must be clear or same substance
+                                            {
+                                                for (ushort m = 1; m < 10; m++)//multiply exit area to fake upward/sideward motion
+                                                {
+                                                    if (j+m < MAPSIZE)
+                                                    {
+                                                        if (blockList[i,j+m,k] == BlockType.None)
+                                                        {
+                                                            if (blockListContent[i, j, k, 1] == 1)
+                                                            {
+                                                                SetBlock(i, (ushort)(j + m), k, BlockType.Water, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                            }
+                                                            else if (blockListContent[i, j, k, 1] == 2)
+                                                            {
+                                                                SetBlock(i, (ushort)(j + m), k, BlockType.Lava, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                            }
+                                                            blockListContent[i, j, k, 2] -= 1;
+                                                            break;//done with this pump
+                                                        }
+                                                        else// if (blockList[i + blockListContent[i, j, k, 5] * m, j + blockListContent[i, j, k, 6] * m, k + blockListContent[i, j, k, 7] * m] != pumpheld)//check that we're not going through walls to pump this
+                                                        {
+                                                            break;//pipe has run aground .. and dont refund the intake
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else//had type in contents but no content
+                                    {
+                                        blockListContent[i, j, k, 1] = 0;
                                     }
                                 }
                             }
@@ -3178,6 +3274,7 @@ namespace Infiniminer
                 blockType == BlockType.Generator ||
                 blockType == BlockType.Pipe ||
                 blockType == BlockType.Pump ||
+                blockType == BlockType.Compressor ||
                 blockType == BlockType.Controller ||
                 blockType == BlockType.Water
                 ))
@@ -3394,6 +3491,22 @@ namespace Infiniminer
             {
                 ConsoleWrite("clicked "+btn+" on pipe!");
             }
+            else if (blockList[x, y, z] == BlockType.Compressor)
+            {
+                if (btn == 1)
+                {
+                    if (blockListContent[x, y, z, 0] == 0)
+                    {
+                        ConsoleWrite("Compressing!");
+                        blockListContent[x, y, z, 0] = 1;
+                    }
+                    else
+                    {
+                        ConsoleWrite("Decompressing!");
+                        blockListContent[x, y, z, 0] = 0;
+                    }
+                }
+            }
             else if (blockList[x, y, z] == BlockType.Pump)
             {
                 if (btn == 1)
@@ -3462,7 +3575,7 @@ namespace Infiniminer
                     {
                         blockListContent[x, y, z, 1] = 0;//reset rotation
                         ConsoleWrite("Rotated to:" + blockListContent[x, y, z, 1]);
-                        
+
                         blockListContent[x, y, z, 2] = 0;//x input
                         blockListContent[x, y, z, 3] = -1;//y input
                         blockListContent[x, y, z, 4] = 0;//z input
