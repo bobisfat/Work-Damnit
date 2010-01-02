@@ -338,10 +338,28 @@ namespace Infiniminer
                                             }
                                         }
                                         break;
+                                    case InfiniminerMessage.TriggerEarthquake:
+                                        {
+                                            Vector3 blockPos = msgBuffer.ReadVector3();
+                                            uint expStrength = msgBuffer.ReadUInt32();
 
+                                            // Play the explosion sound.
+                                            propertyBag.PlaySound(InfiniminerSound.Explosion, blockPos, (int)(expStrength/1.5));
+
+                                            // Create some particles.
+                                            propertyBag.particleEngine.CreateExplosionDebris(blockPos);
+
+                                            // Figure out what the effect is.
+                                            float distFromExplosive = (blockPos + 0.5f * Vector3.One - propertyBag.playerPosition).Length();
+                                            
+                                            propertyBag.screenEffectCounter = Math.Min(propertyBag.screenEffectCounter, 1 / 5);
+                                            
+                                        }
+                                        break;
                                     case InfiniminerMessage.TriggerExplosion:
                                         {
                                             Vector3 blockPos = msgBuffer.ReadVector3();
+                                            uint expStrength = msgBuffer.ReadUInt32();
 
                                             // Play the explosion sound.
                                             propertyBag.PlaySound(InfiniminerSound.Explosion, blockPos);
@@ -364,6 +382,7 @@ namespace Infiniminer
                                                 // If this bomb would result in a bigger shake, use its value.
                                                 propertyBag.screenEffectCounter = Math.Min(propertyBag.screenEffectCounter, (distFromExplosive - 2) / 5);
                                             }
+
                                         }
                                         break;
 

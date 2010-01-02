@@ -457,6 +457,13 @@ namespace Infiniminer
                 if (_P.screenEffectCounter > 2)
                     _P.screenEffect = ScreenEffect.None;
             }
+            if (_P.screenEffect == ScreenEffect.Earthquake)
+            {
+                //Color drawColor = new Color(1, 1, 1, 1 - (float)_P.screenEffectCounter * 0.5f);
+                //spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
+                if (_P.screenEffectCounter > 2)
+                    _P.screenEffect = ScreenEffect.None;
+            }
             if (_P.screenEffect == ScreenEffect.Fall)
             {
                 Color drawColor = new Color(1, 0, 0, 1 - (float)_P.screenEffectCounter * 0.5f);

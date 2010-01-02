@@ -266,6 +266,16 @@ namespace Infiniminer
             soundList[sound].Play(volumeLevel);
         }
 
+        public void PlaySound(InfiniminerSound sound, Vector3 position, int magnification)
+        {
+            if (soundList.Count == 0)
+                return;
+
+            float distance = (position - playerPosition).Length()-magnification;
+            float volume = Math.Max(0, 64 - distance) / 10.0f * volumeLevel;
+            volume = volume > 1.0f ? 1.0f : volume < 0.0f ? 0.0f : volume;
+            soundList[sound].Play(volume);
+        }
         public void PlaySound(InfiniminerSound sound, Vector3 position)
         {
             if (soundList.Count == 0)
@@ -365,7 +375,36 @@ namespace Infiniminer
                     // For 0 to 2, shake the camera.
                     if (screenEffectCounter < 2)
                     {
-                        Vector3 newPosition = playerCamera.Position;
+                        Vector3 newPosition = playerPosition;
+                        newPosition.X += (float)(2 - screenEffectCounter) * (float)(randGen.NextDouble() - 0.5) * 0.5f;
+                        newPosition.Y += (float)(2 - screenEffectCounter) * (float)(randGen.NextDouble() - 0.5) * 0.5f;
+                        newPosition.Z += (float)(2 - screenEffectCounter) * (float)(randGen.NextDouble() - 0.5) * 0.5f;
+                        if (!blockEngine.SolidAtPointForPlayer(newPosition) && (newPosition - playerPosition).Length() < 0.7f)
+                            playerCamera.Position = newPosition;
+                    }
+                    // For 2 to 3, move the camera back.
+                    else if (screenEffectCounter < 3)
+                    {
+                        Vector3 lerpVector = playerPosition - playerCamera.Position;
+                        playerCamera.Position += 0.5f * lerpVector;
+                    }
+                    else
+                    {
+                        screenEffect = ScreenEffect.None;
+                        screenEffectCounter = 0;
+                        playerCamera.Position = playerPosition;
+                    }
+                }
+            }
+            if (screenEffect == ScreenEffect.Earthquake)
+            {
+                if (gameTime != null)
+                {
+                    screenEffectCounter += gameTime.ElapsedGameTime.TotalSeconds;
+                    // For 0 to 2, shake the camera.
+                    if (screenEffectCounter < 2)
+                    {
+                        Vector3 newPosition = playerPosition;
                         newPosition.X += (float)(2 - screenEffectCounter) * (float)(randGen.NextDouble() - 0.5) * 0.5f;
                         newPosition.Y += (float)(2 - screenEffectCounter) * (float)(randGen.NextDouble() - 0.5) * 0.5f;
                         newPosition.Z += (float)(2 - screenEffectCounter) * (float)(randGen.NextDouble() - 0.5) * 0.5f;

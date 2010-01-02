@@ -61,6 +61,7 @@ namespace Infiniminer
         Explosion,
         Drown,
         Water,
+        Earthquake
     }
 
     public enum InfiniminerSound
@@ -93,7 +94,7 @@ namespace Infiniminer
         DepositCash,
         WithdrawOre,
         TriggerExplosion,       // position
-
+        TriggerEarthquake,
         PlayerUpdate,           // (uint id for server), position, heading, current tool, animate using (bool): UnreliableInOrder1
         PlayerUpdate1,           // minus position
         PlayerUpdate2,           // minus heading

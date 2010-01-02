@@ -1986,7 +1986,7 @@ namespace Infiniminer
                                                 ConsoleWrite("SELECT_CLASS: " + player.Handle + ", " + playerClass.ToString());
                                                 switch (playerClass)
                                                 {
-                                                    case PlayerClass.Engineer:
+                                                    case PlayerClass.Engineer://strong arm/throws blocks
                                                         player.OreMax = 350;
                                                         player.WeightMax = 4;
                                                         player.HealthMax = 400;
@@ -2280,7 +2280,7 @@ namespace Infiniminer
                 }
                 else
                 {
-                  //  Thread.Sleep(0);
+                    Thread.Sleep(1);
                 }
             }
 
@@ -2339,6 +2339,31 @@ namespace Infiniminer
         }
         public void DoStuff()
         {
+            //volcano frequency
+            if (randGen.Next(1, 500) == 1 && physicsEnabled)
+            {
+                bool volcanospawn = true;
+                while (volcanospawn == true)
+                {
+                    int vx = randGen.Next(8, 52);
+                    int vy = randGen.Next(4, 50);
+                    int vz = randGen.Next(8, 52);
+
+                    if (blockList[vx, vy, vz] != BlockType.Lava || blockList[vx, vy, vz] != BlockType.Spring || blockList[vx, vy, vz] != BlockType.MagmaVent || blockList[vx, vy, vz] != BlockType.Rock)//Fire)//volcano testing
+                    {
+                        if (blockList[vx, vy+1, vz] != BlockType.Lava || blockList[vx, vy+1, vz] != BlockType.Spring || blockList[vx, vy+1, vz] != BlockType.MagmaVent || blockList[vx, vy+1, vz] != BlockType.Rock)//Fire)//volcano testing
+                        {
+                            volcanospawn = false;
+                            int vmag = randGen.Next(30, 60);
+                            ConsoleWrite("Volcanic eruption at " + vx + ", " + vy + ", " + vz + " Magnitude: "+ vmag);
+                            SetBlock((ushort)(vx), (ushort)(vy), (ushort)(vz), BlockType.Lava, PlayerTeam.None);//magma cools down into dirt
+                            blockListContent[vx, vy, vz, 0] = vmag;//volcano strength
+                            blockListContent[vx, vy, vz, 1] = 960;//temperature
+                            EarthquakeEffectAtPoint(vx, vy, vz, vmag);
+                        }
+                    }
+                }
+            }
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
@@ -2386,6 +2411,7 @@ namespace Infiniminer
 
                                 if (liquid == BlockType.Lava && blockListContent[i, j, k, 0] > 0)//upcoming volcano
                                 {
+                                    if (i - 1 > 0 && i + 1 < MAPSIZE - 1 && k - 1 > 0 && k + 1 < MAPSIZE - 1 )
                                     if (blockList[i + 1, j, k] == BlockType.None || blockList[i - 1, j, k] == BlockType.None || blockList[i, j, k + 1] == BlockType.None || blockList[i, j, k - 1] == BlockType.None || blockList[i + 1, j, k] == BlockType.Lava || blockList[i - 1, j, k] == BlockType.Lava || blockList[i, j, k + 1] == BlockType.Lava || blockList[i, j, k - 1] == BlockType.Lava)
                                     {//if air surrounds the magma, then decrease volcanos power
                                         blockListContent[i, j, k, 0] = blockListContent[i, j, k, 0] - 1;
@@ -2830,6 +2856,25 @@ namespace Infiniminer
             return false;
         }
 
+        public bool RayCollision(Vector3 startPosition, Vector3 rayDirection, float distance, int searchGranularity, ref Vector3 hitPoint, ref Vector3 buildPoint, BlockType ignore)
+        {
+            Vector3 testPos = startPosition;
+            Vector3 buildPos = startPosition;
+            for (int i = 0; i < searchGranularity; i++)
+            {
+                testPos += rayDirection * distance / searchGranularity;
+                BlockType testBlock = BlockAtPoint(testPos);
+                if (testBlock != BlockType.None && testBlock != ignore)
+                {
+                    hitPoint = testPos;
+                    buildPoint = buildPos;
+                    return true;
+                }
+                buildPos = testPos;
+            }
+            return false;
+        }
+
         public Vector3 RayCollisionExact(Vector3 startPosition, Vector3 rayDirection, float distance, int searchGranularity, ref Vector3 hitPoint, ref Vector3 buildPoint)
         {
             Vector3 testPos = startPosition;
@@ -2858,7 +2903,7 @@ namespace Infiniminer
             // Figure out what we're hitting.
             Vector3 hitPoint = Vector3.Zero;
             Vector3 buildPoint = Vector3.Zero;
-            if (!RayCollision(playerPosition, playerHeading, 2, 10, ref hitPoint, ref buildPoint))
+            if (!RayCollision(playerPosition, playerHeading, 2, 10, ref hitPoint, ref buildPoint, BlockType.Water))
                 return;
             ushort x = (ushort)hitPoint.X;
             ushort y = (ushort)hitPoint.Y;
@@ -3017,7 +3062,7 @@ namespace Infiniminer
             // If there's no surface within range, bail.
             Vector3 hitPoint = Vector3.Zero;
             Vector3 buildPoint = Vector3.Zero;
-            if (!RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint))
+            if (!RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint,BlockType.Water))
                 actionFailed = true;
 
             // If the block is too expensive, bail.
@@ -3066,7 +3111,26 @@ namespace Infiniminer
                 SetBlock(x, y, z, blockType, player.Team);
                 if (blockType == BlockType.Lava)//Fire)//volcano testing
                 {
-                    blockListContent[x, y, z, 0] = 30;
+                   // blockListContent[x, y, z, 0] = 30;
+                  
+                        bool volcanospawn = true;
+                        while (volcanospawn == true)
+                        {
+                            int vx = x;
+                            int vy = y-10;
+                            int vz = z;
+
+                          
+                                    volcanospawn = false;
+                                    int vmag = randGen.Next(30, 60);
+                                    ConsoleWrite("Volcanic eruption at " + vx + ", " + vy + ", " + vz + " Magnitude: " + vmag);
+                                    SetBlock((ushort)(vx), (ushort)(vy), (ushort)(vz), BlockType.Lava, PlayerTeam.None);//magma cools down into dirt
+                                    blockListContent[vx, vy, vz, 0] = vmag;//volcano strength
+                                    blockListContent[vx, vy, vz, 1] = 960;//temperature
+                                    EarthquakeEffectAtPoint(vx, vy, vz, vmag);
+                              
+                        }
+
                 }
                 player.Ore -= blockCost;
                 SendResourceUpdate(player);
@@ -3087,7 +3151,7 @@ namespace Infiniminer
             // If there's no surface within range, bail.
             Vector3 hitPoint = Vector3.Zero;
             Vector3 buildPoint = Vector3.Zero;
-            if (!RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint))
+            if (!RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint, BlockType.Water))
                 actionFailed = true;
             ushort x = (ushort)hitPoint.X;
             ushort y = (ushort)hitPoint.Y;
@@ -3170,21 +3234,33 @@ namespace Infiniminer
             }
         }
 
-        public void ExplosionEffectAtPoint(int x, int y, int z)
+        public void ExplosionEffectAtPoint(int x, int y, int z, int strength)
         {
-            SetBlock((ushort)x, (ushort)y, (ushort)z, BlockType.Fire, PlayerTeam.None);//might be better at detonate
-            blockListContent[x, y, z, 0] = 6;
+            //SetBlock((ushort)x, (ushort)y, (ushort)z, BlockType.Fire, PlayerTeam.None);//might be better at detonate
+            //blockListContent[x, y, z, 0] = 6;//fire gets stuck?
 
             // Send off the explosion to clients.
             NetBuffer msgBuffer = netServer.CreateBuffer();
             msgBuffer.Write((byte)InfiniminerMessage.TriggerExplosion);
             msgBuffer.Write(new Vector3(x, y, z));
+            msgBuffer.Write(strength);
             foreach (NetConnection netConn in playerList.Keys)
                 if (netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableUnordered);
             //Or not, there's no dedicated function for this effect >:(
         }
 
+        public void EarthquakeEffectAtPoint(int x, int y, int z, int strength)
+        {
+            // Send off the explosion to clients.
+            NetBuffer msgBuffer = netServer.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.TriggerEarthquake);
+            msgBuffer.Write(new Vector3(x, y, z));
+            msgBuffer.Write(strength);
+            foreach (NetConnection netConn in playerList.Keys)
+                if (netConn.Status == NetConnectionStatus.Connected)
+                    netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableUnordered);
+        }
         public void DetonateAtPoint(int x, int y, int z)
         {
             // Remove the block that is detonating.
@@ -3286,7 +3362,7 @@ namespace Infiniminer
                             }
                         }
             }
-            ExplosionEffectAtPoint(x, y, z);
+            ExplosionEffectAtPoint(x, y, z, 3);
         }
 
         public void UseDetonator(Player player)
@@ -3303,7 +3379,7 @@ namespace Infiniminer
                 else if (!varGetB("tnt"))
                 {
                     player.ExplosiveList.RemoveAt(0);
-                    ExplosionEffectAtPoint(x,y,z);
+                    ExplosionEffectAtPoint(x,y,z,3);
                     // Remove the block that is detonating.
                     SetBlock(x, y, z, BlockType.None, PlayerTeam.None);
                 }

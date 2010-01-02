@@ -251,7 +251,7 @@ namespace Infiniminer
             {
                 testPos += rayDirection * distance / searchGranularity;
                 BlockType testBlock = BlockAtPoint(testPos);
-                if (testBlock != BlockType.None)
+                if (testBlock != BlockType.None && testBlock != BlockType.Water)
                 {
                     hitPoint = testPos;
                     buildPoint = buildPos;
