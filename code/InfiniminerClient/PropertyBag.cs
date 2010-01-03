@@ -40,7 +40,7 @@ namespace Infiniminer
         public Vector3 playerVelocity = Vector3.Zero;
         public Vector3 lastPosition = Vector3.Zero;
         public Vector3 lastHeading = Vector3.Zero;
-        public PlayerClass playerClass;
+        public PlayerClass playerClass = PlayerClass.None;
         public PlayerTools[] playerTools = new PlayerTools[1] { PlayerTools.Pickaxe };
         public int playerToolSelected = 0;
         public BlockType[] playerBlocks = new BlockType[1] { BlockType.None };
@@ -563,6 +563,11 @@ namespace Infiniminer
                 if (netClient.Status != NetConnectionStatus.Connected)
                     return;
 
+                if (this.playerClass != PlayerClass.None)
+                {
+                    this.KillPlayer("");
+                }
+
                 this.playerClass = playerClass;
 
                 NetBuffer msgBuffer = netClient.CreateBuffer();
@@ -574,9 +579,9 @@ namespace Infiniminer
                 playerBlockSelected = 0;
 
                 equipWeps();
+
+                this.RespawnPlayer();
             }
-            this.KillPlayer("");
-            this.RespawnPlayer();
         }
 
         public void FireRadar()

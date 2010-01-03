@@ -385,28 +385,28 @@ namespace Infiniminer.States
             Vector3 movePosition = _P.playerPosition + testVector;
             Vector3 midBodyPoint = movePosition + new Vector3(0, -0.7f, 0);
             Vector3 lowerBodyPoint = movePosition + new Vector3(0, -1.4f, 0);
-            float size = 0.3f;
-            //bool allow = true;
-            //for (int x = -1; x < 2; x++)
-            //    for (int y = -1; y < 2; y++)
-            //        for (int z = -1; z < 2; z++)
-            //        {
-            //            Vector3 box = new Vector3(size*x,size*y,size*z);
-            //            if (_P.blockEngine.SolidAtPointForPlayer(movePosition+box))
-            //            {
-            //                allow = false;
-            //                break;
-            //            }
-            //        }
+            float size = 0.2f;
+            bool allow = true;
+            for (int x = -1; x < 2; x++)
+                for (int y = -1; y < 2; y++)
+                    for (int z = -1; z < 2; z++)
+                    {
+                        Vector3 box = new Vector3(size * x, size * y, size * z);
+                        if (_P.blockEngine.SolidAtPointForPlayer(movePosition + box))
+                        {
+                            allow = false;
+                            break;
+                        }
+                    }
 
             if (!_P.blockEngine.SolidAtPointForPlayer(movePosition) && !_P.blockEngine.SolidAtPointForPlayer(lowerBodyPoint) && !_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))
             {
-                //if (allow == true)
-                //{
+                if (allow == true)
+                {
                     _P.playerPosition = _P.playerPosition + moveVector;
 
                     return true;
-                //}
+                }
             }
 
             // It's solid there, so while we can't move we have officially collided with it.
