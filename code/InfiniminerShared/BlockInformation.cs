@@ -101,6 +101,8 @@ namespace Infiniminer
         Fire,
         Water,
         Magma,
+        TrapR,
+        TrapB,
         Trap,
         TrapVis,
         StealthBlockR,
@@ -222,17 +224,9 @@ namespace Infiniminer
                 case BlockType.StealthBlockB:
                     return BlockTexture.StealthBlockB;
                 case BlockType.TrapB:
-                    //if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red) {
-                    //return BlockTexture.Trap; }
-                    //else if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue == PlayerTeam.Blue)
-                    //{
-                    //return BlockTexture.TrapVis;}
+                    return BlockTexture.TrapB;
                 case BlockType.TrapR:
-                   //if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue) {
-                    //return BlockTexture.Trap; } 
-                    //else if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red) {
-                    //    return BlockTexture.TrapVis;
-                    //}
+                   return BlockTexture.TrapR;
 
                 case BlockType.BankRed:
                     switch (faceDir)

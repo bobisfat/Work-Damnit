@@ -78,7 +78,7 @@ namespace Infiniminer
         public BlockType[, ,] downloadList = null;
         Dictionary<uint,bool>[,] faceMap = null;
         BlockTexture[,] blockTextureMap = null;
-        IMTexture[] blockTextures = null;
+        public IMTexture[] blockTextures = null;
         Effect basicEffect;
         InfiniminerGame gameInstance;
         DynamicVertexBuffer[,] vertexBuffers = null;
