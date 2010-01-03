@@ -848,19 +848,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
-    <Compile Include="blocks\tex_block_magma.png">
-      <Name>tex_block_magma</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="blocks\tex_block_dirt_trans.png">
-      <Name>tex_block_dirt_trans</Name>
-	       <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile> 
     <Compile Include="blocks\tex_block_mechanism.png">
       <Name>tex_block_mechanism</Name>
       <Importer>TextureImporter</Importer>
