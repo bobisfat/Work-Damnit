@@ -1991,6 +1991,7 @@ namespace Infiniminer
                                         case InfiniminerMessage.SelectClass:
                                             {
                                                 PlayerClass playerClass = (PlayerClass)msgBuffer.ReadByte();
+                                                player.Alive = false;
                                                 ConsoleWrite("SELECT_CLASS: " + player.Handle + ", " + playerClass.ToString());
                                                 switch (playerClass)
                                                 {
@@ -2028,6 +2029,8 @@ namespace Infiniminer
                                                 PlayerTeam playerTeam = (PlayerTeam)msgBuffer.ReadByte();
                                                 ConsoleWrite("SELECT_TEAM: " + player.Handle + ", " + playerTeam.ToString());
                                                 player.Team = playerTeam;
+                                                player.Health = 0;
+                                                player.Alive = false;
                                                 SendResourceUpdate(player);
                                                 SendPlayerSetTeam(player);
                                             }

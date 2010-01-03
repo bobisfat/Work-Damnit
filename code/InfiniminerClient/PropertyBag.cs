@@ -453,26 +453,33 @@ namespace Infiniminer
             if (netClient.Status != NetConnectionStatus.Connected)
                 return;
 
-            this.playerTeam = playerTeam;
-
-            NetBuffer msgBuffer = netClient.CreateBuffer();
-            msgBuffer.Write((byte)InfiniminerMessage.PlayerSetTeam);
-            msgBuffer.Write((byte)playerTeam);
-            netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
-
-            if (playerTeam == PlayerTeam.Red)
+            if (this.playerTeam != playerTeam)
             {
-                blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
-                blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
-            }
-            else
-            {
-                blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
-                blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
+
+                this.playerTeam = playerTeam;
+
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerSetTeam);
+                msgBuffer.Write((byte)playerTeam);
+                netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
+
+                if (playerTeam == PlayerTeam.Red)
+                {
+
+                    this.KillPlayer("HAS JOINED THE RED TEAM"); 
+                    blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
+                    blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
+                }
+                else
+                {
+                    this.KillPlayer("HAS JOINED THE BLUE TEAM"); 
+                    blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
+                    blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
+                }
             }
         }
 
-        public bool allWeps = true; //Needs to be true on sandbox servers, though that requires a server mod
+        public bool allWeps = false; //Needs to be true on sandbox servers, though that requires a server mod
 
         public void equipWeps()
         {
@@ -594,6 +601,10 @@ namespace Infiniminer
                 equipWeps();
 
                 this.RespawnPlayer();
+            }
+            else
+            {
+                equipWeps();
             }
         }
 

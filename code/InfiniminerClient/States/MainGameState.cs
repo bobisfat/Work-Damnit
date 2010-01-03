@@ -408,8 +408,18 @@ namespace Infiniminer.States
 
             if (!_P.blockEngine.SolidAtPointForPlayer(movePosition) && !_P.blockEngine.SolidAtPointForPlayer(lowerBodyPoint) && !_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))
             {
-                _P.playerPosition = _P.playerPosition + moveVector;
-                return true;
+                testVector = moveVector;
+                testVector.Normalize();
+                testVector = testVector * (moveLength + 0.11f);//prevent player from getting camera too close to block
+                movePosition = _P.playerPosition + testVector;
+                midBodyPoint = movePosition + new Vector3(0, -0.7f, 0);
+                lowerBodyPoint = movePosition + new Vector3(0, -1.4f, 0);
+
+                if (!_P.blockEngine.SolidAtPointForPlayer(movePosition) && !_P.blockEngine.SolidAtPointForPlayer(lowerBodyPoint) && !_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))
+                {
+                    _P.playerPosition = _P.playerPosition + moveVector;
+                    return true;
+                }
             }
 
             // It's solid there, so while we can't move we have officially collided with it.
