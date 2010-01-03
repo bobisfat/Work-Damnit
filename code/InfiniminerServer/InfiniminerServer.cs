@@ -71,7 +71,7 @@ namespace Infiniminer
         {
             BlockType testpoint = BlockAtPoint(pos);
 
-            if (testpoint == BlockType.None || testpoint == BlockType.Fire || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
+            if (testpoint == BlockType.None || testpoint == BlockType.Fire || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava|| testpoint == BlockType.StealthBlockB && pl.Team == PlayerTeam.Blue  || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.StealthBlockR && pl.Team == PlayerTeam.Red || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
             {//check if player is not in wall
                //falldamage
                 if (testpoint == BlockType.Fire)
@@ -3291,7 +3291,9 @@ namespace Infiniminer
                 blockType == BlockType.Pump ||
                 blockType == BlockType.Compressor ||
                 blockType == BlockType.Controller ||
-                blockType == BlockType.Water
+                blockType == BlockType.Water ||
+                blockType == BlockType.StealthBlockB ||
+                blockType == BlockType.StealthBlockR
                 ))
                 actionFailed = true;
 
@@ -3417,6 +3419,8 @@ namespace Infiniminer
                                 case BlockType.Jump:
                                 case BlockType.Explosive:
                                 case BlockType.Lava:
+                                case BlockType.StealthBlockB:
+                                case BlockType.StealthBlockR:
                                 case BlockType.Road:
                                     destroyBlock = true;
                                     break;
@@ -3466,6 +3470,8 @@ namespace Infiniminer
                                     case BlockType.Explosive:
                                     case BlockType.Lava:
                                     case BlockType.Road:
+                                    case BlockType.StealthBlockB:
+                                    case BlockType.StealthBlockR:
                                         destroyBlock = true;
                                         break;
                                 }
