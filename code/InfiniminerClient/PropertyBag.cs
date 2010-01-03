@@ -45,7 +45,7 @@ namespace Infiniminer
         public int playerToolSelected = 0;
         public BlockType[] playerBlocks = new BlockType[1] { BlockType.None };
         public int playerBlockSelected = 0;
-        public PlayerTeam playerTeam = PlayerTeam.Red;
+        public PlayerTeam playerTeam = PlayerTeam.None;//Red;
         public bool playerDead = true;
         public bool allowRespawn = false;
         public uint playerOre = 0;
