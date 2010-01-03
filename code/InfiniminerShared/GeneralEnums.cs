@@ -106,6 +106,8 @@ namespace Infiniminer
         PlayerAlive,            // (uint id for server) :ReliableInOrder2
         PlayerPing,             // uint id
         PlayerHurt,             // allows client to tell server of damage
+        PlayerPosition,         // server sends client new position\
+        PlayerRespawn,          // allows the player to respawn
         ChatMessage,            // byte type, string message : ReliableInOrder3
         GameOver,               // byte team
         PlaySound,              // byte sound, bool isPositional, ?Vector3 location : ReliableUnordered

@@ -96,14 +96,14 @@ namespace Infiniminer
             {
                 if (pl.Alive)
                 {
-                    pl.Ore = 0;//should be calling death function for player
-                    pl.Cash = 0;
-                    pl.Weight = 0;
-                    pl.Health = 0;
-                    pl.Alive = false;
+                    //pl.Ore = 0;//should be calling death function for player
+                    //pl.Cash = 0;
+                    //pl.Weight = 0;
+                    //pl.Health = 0;
+                    //pl.Alive = false;
 
-                    SendResourceUpdate(pl);
-                    SendPlayerDead(pl);
+                    //SendResourceUpdate(pl);
+                    //SendPlayerDead(pl);
 
                     ConsoleWrite("refused" + pl.Handle + " " + pos.X + "/" + pos.Y + "/" + pos.Z);
                     return pl.Position;
@@ -2055,6 +2055,8 @@ namespace Infiniminer
                                                         if (netConn.Status == NetConnectionStatus.Connected)
                                                             netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder3);
                                                 }
+
+                                                SendPlayerRespawn(player);//allow this player to instantly respawn
                                             }
                                             break;
 
@@ -2084,7 +2086,11 @@ namespace Infiniminer
                                                 SendPlayerAlive(player);
                                             }
                                             break;
-
+                                        case InfiniminerMessage.PlayerRespawn:
+                                            {
+                                                SendPlayerRespawn(player);//new respawn
+                                            }
+                                            break;
                                         case InfiniminerMessage.PlayerUpdate:
                                             {
                                                 player.Position = Auth_Position(msgBuffer.ReadVector3(),player);
@@ -2127,6 +2133,11 @@ namespace Infiniminer
                                                         SendPlayerDead(player);
                                                     }
                                                 }
+                                            }
+                                            break;
+                                        case InfiniminerMessage.PlayerPosition://server not interested in clients complaints about position
+                                            {
+                                              
                                             }
                                             break;
                                         case InfiniminerMessage.PlayerInteract://client speaks of mashing on block
@@ -3731,6 +3742,17 @@ namespace Infiniminer
             netServer.SendMessage(msgBuffer, player.NetConn, NetChannel.ReliableInOrder1);
         }
 
+        public void SendPlayerPosition(Player player)
+        {
+            if (player.NetConn.Status != NetConnectionStatus.Connected)
+                return;
+
+            // ore, cash, weight, max ore, max weight, team ore, red cash, blue cash, all uint
+            NetBuffer msgBuffer = netServer.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.PlayerPosition);
+            msgBuffer.Write(player.Position);
+            netServer.SendMessage(msgBuffer, player.NetConn, NetChannel.ReliableUnordered);
+        }
         List<MapSender> mapSendingProgress = new List<MapSender>();
 
         public void TerminateFinishedThreads()
@@ -3977,6 +3999,54 @@ namespace Infiniminer
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
 
+        public void SendPlayerRespawn(Player player)
+        {
+            if (!player.Alive)
+            {
+                //create respawn script
+                // Respawn a few blocks above a safe position above altitude 0.
+                bool positionFound = false;
+
+                // Try 20 times; use a potentially invalid position if we fail.
+                for (int i = 0; i < 20; i++)
+                {
+                    // Pick a random starting point.
+                    Vector3 startPos = new Vector3(randGen.Next(2, 62), 63, randGen.Next(2, 62));
+
+                    // See if this is a safe place to drop.
+                    for (startPos.Y = 63; startPos.Y >= 54; startPos.Y--)
+                    {
+                        BlockType blockType = BlockAtPoint(startPos);
+                        if (blockType == BlockType.Lava)
+                            break;
+                        else if (blockType != BlockType.None)
+                        {
+                            // We have found a valid place to spawn, so spawn a few above it.
+                            player.Position = startPos + Vector3.UnitY * 5;
+                            positionFound = true;
+                            break;
+                        }
+                    }
+
+                    // If we found a position, no need to try anymore!
+                    if (positionFound)
+                        break;
+                }
+
+                // If we failed to find a spawn point, drop randomly.
+                if (!positionFound)
+                    player.Position = new Vector3(randGen.Next(2, 62), 66, randGen.Next(2, 62));
+
+                // Drop the player on the middle of the block, not at the corner.
+                player.Position += new Vector3(0.5f, 0, 0.5f);
+                //
+
+                NetBuffer msgBuffer = netServer.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerRespawn);
+                msgBuffer.Write(player.Position);
+                netServer.SendMessage(msgBuffer, player.NetConn, NetChannel.ReliableInOrder3);
+            }
+        }
         public void SendPlayerAlive(Player player)
         {
             NetBuffer msgBuffer = netServer.CreateBuffer();

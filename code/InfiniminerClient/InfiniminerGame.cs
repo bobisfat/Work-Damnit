@@ -316,7 +316,13 @@ namespace Infiniminer
                                             propertyBag.playerHealthMax = msgBuffer.ReadUInt32();
                                         }
                                         break;
-
+                                    case InfiniminerMessage.PlayerPosition:
+                                        {
+                                            // ore, cash, weight, max ore, max weight, team ore, red cash, blue cash, all uint
+                                            propertyBag.playerPosition = msgBuffer.ReadVector3();
+                                           
+                                        }
+                                        break;
                                     case InfiniminerMessage.BlockSet:
                                         {
                                             // x, y, z, type, all bytes
@@ -445,6 +451,14 @@ namespace Infiniminer
                                                 Player player = propertyBag.playerList[playerId];
                                                 player.Alive = true;
                                             }
+                                        }
+                                        break;
+
+                                    case InfiniminerMessage.PlayerRespawn:
+                                        {
+                                            //propertyBag.playerList[propertyBag.playerMyId].UpdatePosition(msgBuffer.ReadVector3(), gameTime.TotalGameTime.TotalSeconds);
+                                            propertyBag.playerPosition = msgBuffer.ReadVector3();
+                                            propertyBag.allowRespawn = true;
                                         }
                                         break;
 
