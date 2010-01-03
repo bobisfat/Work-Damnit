@@ -695,7 +695,7 @@ namespace Infiniminer
             msgBuffer.Write(playerPosition);
             msgBuffer.Write(playerCamera.GetLookVector());
             msgBuffer.Write((byte)PlayerTools.SpawnItem);
-           
+            msgBuffer.Write((byte)BlockType.None);
             netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
 
