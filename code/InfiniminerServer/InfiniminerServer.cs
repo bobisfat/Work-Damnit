@@ -1713,8 +1713,7 @@ namespace Infiniminer
             //netServer.SimulatedLoss = 0.1f;
             //netServer.SimulatedDuplicates = 0.05f;
             //netServer.Configuration.SendBufferSize = 2048000;
-            netServer.Start();
-
+            //netServer.Start();//starts too early
             // Initialize variables we'll use.
             NetBuffer msgBuffer = netServer.CreateBuffer();
             NetMessageType msgType;
@@ -1788,6 +1787,7 @@ namespace Infiniminer
             double frameRate = 0;
             
             // Main server loop!
+            netServer.Start();
             ConsoleWrite("SERVER READY");
 
             if (!physics.IsAlive)
@@ -2287,6 +2287,7 @@ namespace Infiniminer
                     SaveLevel("autosave_" + (UInt64)DateTime.Now.ToBinary() + ".lvl");
 
                     netServer.Shutdown("The server is restarting.");
+                    
                     Thread.Sleep(100);
 
                     physics.Abort();
