@@ -1712,7 +1712,7 @@ namespace Infiniminer
             //netServer.SimulatedLatencyVariance = 0.05f;
             //netServer.SimulatedLoss = 0.1f;
             //netServer.SimulatedDuplicates = 0.05f;
-            netServer.Configuration.SendBufferSize = 2048000;
+            //netServer.Configuration.SendBufferSize = 2048000;
             netServer.Start();
 
             // Initialize variables we'll use.
@@ -3227,7 +3227,7 @@ namespace Infiniminer
                     //blockType = BlockType.Fire;
 
                 SetBlock(x, y, z, blockType, player.Team);
-                if (blockType == BlockType.Lava)//Fire)//volcano testing
+                if (1 == 0)//Fire)//volcano testing
                 {
                    // blockListContent[x, y, z, 0] = 30;
                   

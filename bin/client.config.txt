@@ -1,5 +1,5 @@
 # This value specifies your name - please change it to something unique!
-handle = Player
+handle = Lebowski
 
 width = 1024
 height = 780
