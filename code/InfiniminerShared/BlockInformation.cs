@@ -103,8 +103,8 @@ namespace Infiniminer
         Magma,
         TrapR,
         TrapB,
-        Trap,
         TrapVis,
+        Trap,
         StealthBlockR,
         StealthBlockB,
         TransRed,   // THESE MUST BE THE LAST TWO TEXTURES
