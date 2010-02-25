@@ -172,7 +172,8 @@ namespace Infiniminer.States
             {
                 if (key == Keys.Escape)
                 {
-                    nextState = "Infiniminer.States.TitleState";
+                    _SM.Exit();//quit out straight from browser
+                    //nextState = "Infiniminer.States.TitleState";
                 }
             }
         }
