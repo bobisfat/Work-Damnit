@@ -13,7 +13,7 @@ showfps = true
 yinvert = false
 
 # This value specifies the override volume multiplier, for people who find the sounds too loud.
-volume = 1
+volume = 0.01
 
 #This value specifies the mouse sensitivity, from 1-50 default 5
 sensitivity = 5
