@@ -2332,7 +2332,13 @@ namespace Infiniminer
                 blockType == BlockType.BeaconBlue ||
                 blockType == BlockType.Water ||
                 blockType == BlockType.TransBlue ||
-                blockType == BlockType.TransRed))
+                blockType == BlockType.TransRed ||
+                blockType == BlockType.Generator ||
+                blockType == BlockType.Pipe ||
+                blockType == BlockType.Pump ||
+                blockType == BlockType.Controller ||
+                blockType == BlockType.Water
+                ))
                 actionFailed = true;
 
             if (actionFailed)
