@@ -474,11 +474,19 @@ namespace Infiniminer.States
                         _P.DepositOre();
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
+                    if (_P.AtGenerator())
+                    {
+                        _P.PlaySound(InfiniminerSound.ClickHigh);
+                    }
                     break;
                 case Buttons.Withdraw:
                     if (_P.AtBankTerminal())
                     {
                         _P.WithdrawOre();
+                        _P.PlaySound(InfiniminerSound.ClickHigh);
+                    }
+                    if (_P.AtGenerator())
+                    {
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
                     break;

@@ -679,6 +679,23 @@ namespace Infiniminer
                 }
         }
 
+       // Returns true if the player is able to use generator
+        public bool AtGenerator()
+        {
+            // Figure out what we're looking at.
+            Vector3 hitPoint = Vector3.Zero;
+            Vector3 buildPoint = Vector3.Zero;
+            if (!blockEngine.RayCollision(playerPosition, playerCamera.GetLookVector(), 2.5f, 25, ref hitPoint, ref buildPoint))
+                return false;
+
+            // If it's a valid bank object, we're good!
+            BlockType blockType = blockEngine.BlockAtPoint(hitPoint);
+            if (blockType == BlockType.Generator)
+                return true;
+            return false;
+        }
+
+
         // Returns true if the player is able to use a bank right now.
         public bool AtBankTerminal()
         {
