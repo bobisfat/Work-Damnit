@@ -25,7 +25,7 @@ sphericaltnt = true
 
 # If true, lava will be aggressive - it won't need solid ground to spread!
 insanelava = false
-insanewater = true
+insanewater = false
 
 # If true, lava will spread to shock blocks to the side and above - allows for "piping" lava to new areas or flooding places - Fish's idea
 shockspreadslava = true
