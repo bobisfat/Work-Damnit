@@ -1951,6 +1951,7 @@ namespace Infiniminer
                 TimeSpan mapUpdateTimeSpan = DateTime.Now - lastMapBackup;
                 if (mapUpdateTimeSpan.TotalMinutes > 5)
                 {
+                    lastMapBackup = DateTime.Now;
                     SaveLevel("autoBK.lvl");
                 }
 
