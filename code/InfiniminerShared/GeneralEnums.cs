@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Infiniminer
 {
@@ -140,5 +141,6 @@ namespace Infiniminer
     {
         public string ID;
         public PlayerTeam Team;
+        
     }
 }
