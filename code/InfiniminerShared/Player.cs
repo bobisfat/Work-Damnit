@@ -30,6 +30,7 @@ namespace Infiniminer
         DeconstructionGun,
         ProspectingRadar,
         Detonator,
+        SpawnItem
     }
 
     public enum PlayerTeam

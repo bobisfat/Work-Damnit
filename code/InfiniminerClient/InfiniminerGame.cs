@@ -261,6 +261,26 @@ namespace Infiniminer
                                             }
                                         }
                                         break;
+                                    case InfiniminerMessage.SetItem:
+                                        {
+                                            Vector3 position = msgBuffer.ReadVector3();
+                                            string text = msgBuffer.ReadString();
+                                            PlayerTeam team = (PlayerTeam)msgBuffer.ReadByte();
+
+                                            if (text == "")
+                                            {
+                                                if (propertyBag.beaconList.ContainsKey(position))
+                                                    propertyBag.beaconList.Remove(position);
+                                            }
+                                            else
+                                            {
+                                                Item newItem = new Item();
+                                                newItem.ID = text;
+                                                newItem.Team = team;
+                                                propertyBag.itemList.Add(position, newItem);
+                                            }
+                                        }
+                                        break;
 
                                     case InfiniminerMessage.TriggerConstructionGunAnimation:
                                         {

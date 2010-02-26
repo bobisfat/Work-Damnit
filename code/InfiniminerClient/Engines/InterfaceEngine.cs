@@ -418,6 +418,9 @@ namespace Infiniminer
                     RenderRadarBlip(spriteBatch, bPair.Key, Color.White, false, bPair.Value.ID);
             RenderRadarBlip(spriteBatch, new Vector3(100000, 0, 32), Color.White, false, "NORTH");
 
+            foreach (KeyValuePair<Vector3, Item> bPair in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
+                    RenderRadarBlip(spriteBatch, bPair.Key, Color.Magenta, false, bPair.Value.ID);
+
             spriteBatch.Draw(texRadarForeground, new Vector2(10, 30), Color.White);
 
             // Draw escape message.

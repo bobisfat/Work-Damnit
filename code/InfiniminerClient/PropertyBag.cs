@@ -68,6 +68,7 @@ namespace Infiniminer
         public uint teamBlueCash = 0;
         public PlayerTeam teamWinners = PlayerTeam.None;
         public Dictionary<Vector3, Beacon> beaconList = new Dictionary<Vector3, Beacon>();
+        public Dictionary<Vector3, Item> itemList = new Dictionary<Vector3, Item>();
 
         // Screen effect stuff.
         private Random randGen = new Random();
@@ -433,11 +434,12 @@ namespace Infiniminer
             playerBlockSelected = 0;
             if (allWeps)
             {
-                playerTools = new PlayerTools[5] { PlayerTools.Pickaxe,
+                playerTools = new PlayerTools[6] { PlayerTools.Pickaxe,
                 PlayerTools.ConstructionGun,
                 PlayerTools.DeconstructionGun,
                 PlayerTools.ProspectingRadar,
-                PlayerTools.Detonator };
+                PlayerTools.Detonator,
+                PlayerTools.SpawnItem };
 
                 playerBlocks = new BlockType[17] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
                                              playerTeam == PlayerTeam.Red ? BlockType.TransRed : BlockType.TransBlue,
@@ -480,9 +482,10 @@ namespace Infiniminer
                         break;
 
                     case PlayerClass.Engineer:
-                        playerTools = new PlayerTools[3] {  PlayerTools.Pickaxe,
+                        playerTools = new PlayerTools[4] {  PlayerTools.Pickaxe,
                                                         PlayerTools.ConstructionGun,     
-                                                        PlayerTools.DeconstructionGun   };
+                                                        PlayerTools.DeconstructionGun,
+                                                        PlayerTools.SpawnItem };
                         playerBlocks = new BlockType[14] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
                                                         BlockType.TransRed,
                                                         BlockType.TransBlue, //playerTeam == PlayerTeam.Red ? BlockType.TransRed : BlockType.TransBlue, //Only need one entry due to right-click
@@ -608,6 +611,25 @@ namespace Infiniminer
             netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
 
+        public void FireSpawnItem()
+        {
+            if (netClient.Status != NetConnectionStatus.Connected)
+                return;
+
+            playerToolCooldown = GetToolCooldown(PlayerTools.SpawnItem);
+            constructionGunAnimation = -5;
+
+            // Send the message.
+            NetBuffer msgBuffer = netClient.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.UseTool);
+            msgBuffer.Write(playerPosition);
+            msgBuffer.Write(playerCamera.GetLookVector());
+            msgBuffer.Write((byte)PlayerTools.SpawnItem);
+           
+            netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
+        }
+
+
         public void FireDeconstructionGun()
         {
             if (netClient.Status != NetConnectionStatus.Connected)
@@ -723,6 +745,7 @@ namespace Infiniminer
                 case PlayerTools.ConstructionGun: return 0.5f;
                 case PlayerTools.DeconstructionGun: return 0.5f;
                 case PlayerTools.ProspectingRadar: return 0.5f;
+                case PlayerTools.SpawnItem: return 0.5f;
                 default: return 0;
             }
         }

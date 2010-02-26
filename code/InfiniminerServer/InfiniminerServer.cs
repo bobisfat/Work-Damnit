@@ -17,6 +17,7 @@ namespace Infiniminer
         PlayerTeam[, ,] blockCreatorTeam = null;
         public int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
+        
         int lavaBlockCount = 0;
         int waterBlockCount = 0;
         uint oreFactor = 10;
@@ -1269,6 +1270,9 @@ namespace Infiniminer
 
         List<string> beaconIDList = new List<string>();
         Dictionary<Vector3, Beacon> beaconList = new Dictionary<Vector3, Beacon>();
+        List<string> itemIDList = new List<string>();
+        Dictionary<Vector3, Item> itemList = new Dictionary<Vector3, Item>();
+
         Random randGen = new Random();
         public string _GenerateBeaconID()
         {
@@ -1286,6 +1290,29 @@ namespace Infiniminer
             return newId;
         }
 
+        public string _GenerateItemID()
+        {
+            string id = "K";
+            for (int i = 0; i < 3; i++)
+                id += (char)randGen.Next(48, 58);
+            return id;
+        }
+        public string GenerateItemID()
+        {
+            string newId = _GenerateItemID();
+            while (itemIDList.Contains(newId))
+                newId = _GenerateItemID();
+            itemIDList.Add(newId);
+            return newId;
+        }
+        public void SetItem(ushort x, ushort y, ushort z, ushort itype, PlayerTeam team)
+        {
+                Item newItem = new Item();
+                newItem.ID = GenerateItemID();
+                newItem.Team = team;
+                itemList[new Vector3(x, y, z)] = newItem;
+                SendSetItem(new Vector3(x, y+1, z), newItem.ID, newItem.Team);
+        }
         public void SetBlock(ushort x, ushort y, ushort z, BlockType blockType, PlayerTeam team)
         {
             if (x <= 0 || y <= 0 || z <= 0 || (int)x >= MAPSIZE - 1 || (int)y >= MAPSIZE - 1 || (int)z >= MAPSIZE - 1)
@@ -1682,6 +1709,9 @@ namespace Infiniminer
                                                         break;
                                                     case PlayerTools.Detonator:
                                                         UseDetonator(player);
+                                                        break;
+                                                    case PlayerTools.SpawnItem:
+                                                        SpawnItem(player, playerPosition, playerHeading);
                                                         break;
                                                 }
                                             }
@@ -2284,7 +2314,47 @@ namespace Infiniminer
         //                }
         //    return false;
         //}
+        public void SpawnItem(Player player, Vector3 playerPosition, Vector3 playerHeading)
+        {
+            bool actionFailed = false;
 
+            // If there's no surface within range, bail.
+            Vector3 hitPoint = Vector3.Zero;
+            Vector3 buildPoint = Vector3.Zero;
+            if (!RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint))
+                actionFailed = true;
+
+            ushort x = (ushort)buildPoint.X;
+            ushort y = (ushort)buildPoint.Y;
+            ushort z = (ushort)buildPoint.Z;
+
+            if (x <= 0 || y <= 0 || z <= 0 || (int)x >= MAPSIZE - 1 || (int)y >= MAPSIZE - 1 || (int)z >= MAPSIZE - 1)
+                actionFailed = true;
+
+            if (blockList[(ushort)hitPoint.X, (ushort)hitPoint.Y, (ushort)hitPoint.Z] == BlockType.Lava || blockList[(ushort)hitPoint.X, (ushort)hitPoint.Y, (ushort)hitPoint.Z] == BlockType.Water)
+                actionFailed = true;
+
+            if (actionFailed)
+            {
+                // Decharge the player's gun.
+            //    TriggerConstructionGunAnimation(player, -0.2f);
+            }
+            else
+            {
+                // Fire the player's gun.
+            //    TriggerConstructionGunAnimation(player, 0.5f);
+
+                // Build the block.
+                SetItem(x, y, z, 0, player.Team);
+               // player.Ore -= blockCost;
+               // SendResourceUpdate(player);
+
+                // Play the sound.
+                PlaySound(InfiniminerSound.ConstructionGun, player.Position);
+            }            
+
+
+        }
         public void UseConstructionGun(Player player, Vector3 playerPosition, Vector3 playerHeading, BlockType blockType)
         {
             bool actionFailed = false;
@@ -2774,6 +2844,18 @@ namespace Infiniminer
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
 
+        public void SendSetItem(Vector3 position, string text, PlayerTeam team)
+        {
+            NetBuffer msgBuffer = netServer.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.SetItem);
+            msgBuffer.Write(position);
+            msgBuffer.Write(text);
+            msgBuffer.Write((byte)team);
+            foreach (NetConnection netConn in playerList.Keys)
+                if (netConn.Status == NetConnectionStatus.Connected)
+                    netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
+        }
+
         public void SendPlayerJoined(Player player)
         {
             NetBuffer msgBuffer;
@@ -2799,12 +2881,12 @@ namespace Infiniminer
             }
 
             // Let this player know about all placed beacons.
-            foreach (KeyValuePair<Vector3, Beacon> bPair in beaconList)
+            foreach (KeyValuePair<Vector3, Item> bPair in itemList)
             {
                 Vector3 position = bPair.Key;
-                position.Y += 1; // beacon is shown a block below its actually position to make altitude show up right
+                position.Y += 1; //fixme
                 msgBuffer = netServer.CreateBuffer();
-                msgBuffer.Write((byte)InfiniminerMessage.SetBeacon);
+                msgBuffer.Write((byte)InfiniminerMessage.SetItem);
                 msgBuffer.Write(position);
                 msgBuffer.Write(bPair.Value.ID);
                 msgBuffer.Write((byte)bPair.Value.Team);

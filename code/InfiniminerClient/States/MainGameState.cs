@@ -387,6 +387,10 @@ namespace Infiniminer.States
                             case PlayerTools.ProspectingRadar:
                                 _P.FireRadar();
                                 break;
+
+                            case PlayerTools.SpawnItem:
+                                _P.FireSpawnItem();//, !(button == MouseButton.LeftButton));//_P.FireConstructionGun(_P.playerBlocks[_P.playerBlockSelected]);
+                                break;
                         }
                     }
                     break;

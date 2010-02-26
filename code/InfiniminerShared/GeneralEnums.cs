@@ -103,6 +103,7 @@ namespace Infiniminer
         PlaySound,              // byte sound, bool isPositional, ?Vector3 location : ReliableUnordered
         TriggerConstructionGunAnimation,
         SetBeacon,              // vector3 position, string text ("" means remove)
+        SetItem,
     }
 
     public enum ChatMessageType
@@ -130,6 +131,12 @@ namespace Infiniminer
     }
 
     public class Beacon
+    {
+        public string ID;
+        public PlayerTeam Team;
+    }
+
+    public class Item
     {
         public string ID;
         public PlayerTeam Team;
