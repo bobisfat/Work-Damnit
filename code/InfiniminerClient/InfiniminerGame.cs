@@ -302,7 +302,6 @@ namespace Infiniminer
                                                     propertyBag.blockEngine.RemoveBlock(x, y, z);
                                                 propertyBag.blockEngine.AddBlock(x, y, z, blockType);
                                                 CheckForStandingInLava();
-                                                //CheckForStandingInWater();
                                             }
                                         }
                                         break;
@@ -480,6 +479,7 @@ namespace Infiniminer
             {
                 propertyBag.KillPlayer(Defines.deathByLava);
             }
+
         }
 
         protected override void Initialize()
