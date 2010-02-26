@@ -157,7 +157,7 @@ namespace StateMasher
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
-
+            
             // Call OnRenderAtUpdate.
             if (currentState != null && propertyBag != null)
             {
