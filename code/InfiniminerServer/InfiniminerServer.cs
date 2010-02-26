@@ -2005,17 +2005,16 @@ namespace Infiniminer
 
         public void DoPumpStuff()
         {
-            bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+            //bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+            //for (ushort i = 0; i < MAPSIZE; i++)
+            //    for (ushort j = 0; j < MAPSIZE; j++)
+            //        for (ushort k = 0; k < MAPSIZE; k++)
+            //            flowSleep[i, j, k] = false;
 
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        flowSleep[i, j, k] = false;
-
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Pump && !flowSleep[i, j, k])
+                        if (blockList[i, j, k] == BlockType.Pump)// && !flowSleep[i, j, k])
                         {
                             for (int a = -1; a < 2; a++)
                             {
@@ -2026,7 +2025,7 @@ namespace Infiniminer
                                         if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
                                         {
                                             SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                                            flowSleep[i + a, j + b, k + c] = true;
+                                         //   flowSleep[i + a, j + b, k + c] = true;
                                         }
                                     }
                                 }
