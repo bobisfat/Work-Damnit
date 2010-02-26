@@ -2386,7 +2386,9 @@ namespace Infiniminer
 
                 // Build the block.
                 //hitPoint = RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint, 1);
+
                 exactPoint.Y = exactPoint.Y + (float)1.0;//0.25 = items height
+
                 SetItem(exactPoint, playerHeading, player.Team);
                // player.Ore -= blockCost;
                // SendResourceUpdate(player);
