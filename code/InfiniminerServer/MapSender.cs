@@ -12,7 +12,7 @@ namespace Infiniminer
         Thread conn;
         Infiniminer.InfiniminerServer infs;
         Infiniminer.InfiniminerNetServer infsN;
-        int MAPSIZE = 64;
+        public int MAPSIZE = 64;
         bool compression = false;
         //bool finished = false;
         public bool finished
@@ -54,7 +54,7 @@ namespace Infiniminer
                     {
                         msgBuffer.Write(x);
                         msgBuffer.Write(y);
-                        for (byte dy = 0; dy < 16; dy++)
+                        for (byte dy = 0; dy < 16; dy++)//16?
                             for (byte z = 0; z < MAPSIZE; z++)
                                 msgBuffer.Write((byte)(infs.blockList[x, y + dy, z]));
                         if (client.Status == NetConnectionStatus.Connected)
