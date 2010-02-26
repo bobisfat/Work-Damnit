@@ -1305,13 +1305,15 @@ namespace Infiniminer
             itemIDList.Add(newId);
             return newId;
         }
-        public void SetItem(ushort x, ushort y, ushort z, ushort itype, PlayerTeam team)
+        public void SetItem(ushort x, ushort y, ushort z, Vector3 heading, PlayerTeam team)
         {
                 Item newItem = new Item();
                 newItem.ID = GenerateItemID();
                 newItem.Team = team;
+                newItem.Heading = heading;
+
                 itemList[new Vector3(x, y, z)] = newItem;
-                SendSetItem(new Vector3(x, y+1, z), newItem.ID, newItem.Team);
+                SendSetItem(new Vector3(x, y+1, z), newItem.ID, newItem.Team, newItem.Heading);
         }
         public void SetBlock(ushort x, ushort y, ushort z, BlockType blockType, PlayerTeam team)
         {
@@ -2345,7 +2347,7 @@ namespace Infiniminer
             //    TriggerConstructionGunAnimation(player, 0.5f);
 
                 // Build the block.
-                SetItem(x, y, z, 0, player.Team);
+                SetItem(x, y, z, playerHeading, player.Team);
                // player.Ore -= blockCost;
                // SendResourceUpdate(player);
 
@@ -2844,13 +2846,15 @@ namespace Infiniminer
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
 
-        public void SendSetItem(Vector3 position, string text, PlayerTeam team)
+        public void SendSetItem(Vector3 position, string text, PlayerTeam team, Vector3 heading)
         {
             NetBuffer msgBuffer = netServer.CreateBuffer();
             msgBuffer.Write((byte)InfiniminerMessage.SetItem);
             msgBuffer.Write(position);
             msgBuffer.Write(text);
             msgBuffer.Write((byte)team);
+            msgBuffer.Write(heading);
+
             foreach (NetConnection netConn in playerList.Keys)
                 if (netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
@@ -2884,12 +2888,29 @@ namespace Infiniminer
             foreach (KeyValuePair<Vector3, Item> bPair in itemList)
             {
                 Vector3 position = bPair.Key;
+                Vector3 heading = bPair.Value.Heading;
                 position.Y += 1; //fixme
                 msgBuffer = netServer.CreateBuffer();
                 msgBuffer.Write((byte)InfiniminerMessage.SetItem);
                 msgBuffer.Write(position);
                 msgBuffer.Write(bPair.Value.ID);
                 msgBuffer.Write((byte)bPair.Value.Team);
+                msgBuffer.Write(heading);
+
+                if (player.NetConn.Status == NetConnectionStatus.Connected)
+                    netServer.SendMessage(msgBuffer, player.NetConn, NetChannel.ReliableInOrder2);
+            }
+
+            foreach (KeyValuePair<Vector3, Beacon> bPair in beaconList)
+            {
+                Vector3 position = bPair.Key;
+                position.Y += 1; //fixme
+                msgBuffer = netServer.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.SetBeacon);
+                msgBuffer.Write(position);
+                msgBuffer.Write(bPair.Value.ID);
+                msgBuffer.Write((byte)bPair.Value.Team);
+
                 if (player.NetConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, player.NetConn, NetChannel.ReliableInOrder2);
             }

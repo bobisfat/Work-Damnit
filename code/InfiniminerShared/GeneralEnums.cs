@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace Infiniminer
 {
@@ -141,6 +142,6 @@ namespace Infiniminer
     {
         public string ID;
         public PlayerTeam Team;
-        
+        public Vector3 Heading;
     }
 }

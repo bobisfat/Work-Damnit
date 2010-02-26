@@ -72,7 +72,7 @@ namespace Infiniminer
                                        _P.playerCamera.Position,
                                        _P.playerCamera.GetLookVector(),
                                        i.Key - Vector3.UnitY * 1.5f,
-                                       Bu.Heading,
+                                       i.Value.Heading,
                                        2);
             }
         }

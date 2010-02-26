@@ -266,7 +266,7 @@ namespace Infiniminer
                                             Vector3 position = msgBuffer.ReadVector3();
                                             string text = msgBuffer.ReadString();
                                             PlayerTeam team = (PlayerTeam)msgBuffer.ReadByte();
-
+                                            Vector3 heading = msgBuffer.ReadVector3();
                                             if (text == "")
                                             {
                                                 if (propertyBag.beaconList.ContainsKey(position))
@@ -277,6 +277,7 @@ namespace Infiniminer
                                                 Item newItem = new Item();
                                                 newItem.ID = text;
                                                 newItem.Team = team;
+                                                newItem.Heading = heading;
                                                 propertyBag.itemList.Add(position, newItem);
                                             }
                                         }
