@@ -431,6 +431,7 @@ namespace Infiniminer
                                                 player.Tool = (PlayerTools)msgBuffer.ReadByte();
                                                 player.UsingTool = msgBuffer.ReadBoolean();
                                                 player.Score = (uint)(msgBuffer.ReadUInt16() * 100);
+                                                player.Health = (uint)(msgBuffer.ReadUInt16() * 100);
                                             }
                                         }
                                         break;

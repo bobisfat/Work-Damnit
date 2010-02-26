@@ -340,8 +340,9 @@ namespace Infiniminer
             int textStart = (graphicsDevice.Viewport.Width - 1024) / 2;
             spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, 20), Color.Black);
             spriteBatch.DrawString(uiFont, "ORE: " + _P.playerOre + "/" + _P.playerOreMax, new Vector2(textStart + 3, 2), Color.White);
-            //spriteBatch.DrawString(uiFont, "LOOT: $" + _P.playerCash, new Vector2(textStart + 170, 2), Color.White);
-            spriteBatch.DrawString(uiFont, "HEALTH: " + _P.playerHealth + "/" + _P.playerHealthMax, new Vector2(textStart + 170, 2), Color.White);
+            spriteBatch.DrawString(uiFont, "LOOT: $" + _P.playerCash, new Vector2(textStart + 170, 2), Color.White);
+            RenderMessageCenter(spriteBatch, String.Format("Health: {0:000}", _P.playerHealth) + "/" + String.Format("{0:000}", _P.playerHealthMax), new Vector2(graphicsDevice.Viewport.Width - 300, graphicsDevice.Viewport.Height - 20), _P.playerHealth >= 0 ? Color.Gray : Defines.IM_RED, Color.Black);
+            //spriteBatch.DrawString(uiFont, "HEALTH: " + _P.playerHealth + "/" + _P.playerHealthMax, new Vector2(textStart + 170, 2), Color.White);
             spriteBatch.DrawString(uiFont, "WEIGHT: " + _P.playerWeight + "/" + _P.playerWeightMax, new Vector2(textStart + 360, 2), Color.White);
             spriteBatch.DrawString(uiFont, "TEAM ORE: " + _P.teamOre, new Vector2(textStart + 515, 2), Color.White);
             spriteBatch.DrawString(uiFont, _P.redName + ": $" + _P.teamRedCash, new Vector2(textStart + 700, 2), _P.red);// Defines.IM_RED);
