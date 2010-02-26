@@ -434,6 +434,7 @@ namespace Infiniminer
         {
             playerToolSelected = 0;
             playerBlockSelected = 0;
+
             if (allWeps)
             {
                 playerTools = new PlayerTools[6] { PlayerTools.Pickaxe,
