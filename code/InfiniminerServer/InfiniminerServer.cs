@@ -1305,15 +1305,15 @@ namespace Infiniminer
             itemIDList.Add(newId);
             return newId;
         }
-        public void SetItem(ushort x, ushort y, ushort z, Vector3 heading, PlayerTeam team)
+        public void SetItem(Vector3 pos, Vector3 heading, PlayerTeam team)
         {
-                Item newItem = new Item();
+                Item newItem = new Item(null);
                 newItem.ID = GenerateItemID();
                 newItem.Team = team;
                 newItem.Heading = heading;
 
-                itemList[new Vector3(x, y, z)] = newItem;
-                SendSetItem(new Vector3(x, y+1, z), newItem.ID, newItem.Team, newItem.Heading);
+                itemList[pos] = newItem;
+                SendSetItem(pos, newItem.ID, newItem.Team, newItem.Heading);
         }
         public void SetBlock(ushort x, ushort y, ushort z, BlockType blockType, PlayerTeam team)
         {
@@ -2227,6 +2227,27 @@ namespace Infiniminer
             return false;
         }
 
+        public Vector3 RayCollisionExact(Vector3 startPosition, Vector3 rayDirection, float distance, int searchGranularity, ref Vector3 hitPoint, ref Vector3 buildPoint)
+        {
+            Vector3 testPos = startPosition;
+            Vector3 buildPos = startPosition;
+           
+            for (int i = 0; i < searchGranularity; i++)
+            {
+                testPos += rayDirection * distance / searchGranularity;
+                BlockType testBlock = BlockAtPoint(testPos);
+                if (testBlock != BlockType.None)
+                {
+                    hitPoint = testPos;
+                    buildPoint = buildPos;
+                    return hitPoint;
+                }
+                buildPos = testPos;
+            }
+
+            return startPosition;
+        }
+
         public void UsePickaxe(Player player, Vector3 playerPosition, Vector3 playerHeading)
         {
             player.QueueAnimationBreak = true;
@@ -2331,9 +2352,15 @@ namespace Infiniminer
             // If there's no surface within range, bail.
             Vector3 hitPoint = Vector3.Zero;
             Vector3 buildPoint = Vector3.Zero;
+            Vector3 exactPoint = Vector3.Zero;
             if (!RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint))
+            {
                 actionFailed = true;
-
+            }
+            else
+            {
+                exactPoint = RayCollisionExact(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint);
+            }
             ushort x = (ushort)buildPoint.X;
             ushort y = (ushort)buildPoint.Y;
             ushort z = (ushort)buildPoint.Z;
@@ -2355,7 +2382,9 @@ namespace Infiniminer
             //    TriggerConstructionGunAnimation(player, 0.5f);
 
                 // Build the block.
-                SetItem(x, y, z, playerHeading, player.Team);
+                //hitPoint = RayCollision(playerPosition, playerHeading, 6, 25, ref hitPoint, ref buildPoint, 1);
+                exactPoint.Y = exactPoint.Y + (float)0.25;
+                SetItem(exactPoint, playerHeading, player.Team);
                // player.Ore -= blockCost;
                // SendResourceUpdate(player);
 

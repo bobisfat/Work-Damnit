@@ -137,11 +137,4 @@ namespace Infiniminer
         public string ID;
         public PlayerTeam Team;
     }
-
-    public class Item
-    {
-        public string ID;
-        public PlayerTeam Team;
-        public Vector3 Heading;
-    }
 }

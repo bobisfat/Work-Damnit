@@ -274,7 +274,8 @@ namespace Infiniminer
                                             }
                                             else
                                             {
-                                                Item newItem = new Item();
+                                               // propertyBag.playerList[playerId] = new Player(null, (Game)this);
+                                                Item newItem = new Item((Game)this);
                                                 newItem.ID = text;
                                                 newItem.Team = team;
                                                 newItem.Heading = heading;

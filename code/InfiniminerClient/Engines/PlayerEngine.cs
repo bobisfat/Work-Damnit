@@ -50,10 +50,8 @@ namespace Infiniminer
             if (_P == null)
                 _P = gameInstance.propertyBag;
 
-            Player Bu = null;
             foreach (Player p in _P.playerList.Values)
             {
-                Bu = p;
                 if (p.Alive && p.ID != _P.playerMyId)
                 {
                     p.SpriteModel.Draw(_P.playerCamera.ViewMatrix,
@@ -65,9 +63,10 @@ namespace Infiniminer
                                        2);
                 }
             }
+
             foreach (KeyValuePair<Vector3, Item> i in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
             {
-                    Bu.SpriteModel.Draw(_P.playerCamera.ViewMatrix,
+                    i.Value.SpriteModel.Draw(_P.playerCamera.ViewMatrix,
                                        _P.playerCamera.ProjectionMatrix,
                                        _P.playerCamera.Position,
                                        _P.playerCamera.GetLookVector(),
