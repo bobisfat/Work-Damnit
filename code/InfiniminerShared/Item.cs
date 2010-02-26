@@ -64,7 +64,7 @@ namespace Infiniminer
             if (gameInstance == null)
                 return;
 
-            string textureName = "sprites/tex_sprite_blue_drill";
+            string textureName = "sprites/tex_sprite_lemonorgoldnum";
     
             Texture2D orig = gameInstance.Content.Load<Texture2D>(textureName);
            
