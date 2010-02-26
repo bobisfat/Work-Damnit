@@ -93,6 +93,8 @@ namespace Infiniminer
         TriggerExplosion,       // position
 
         PlayerUpdate,           // (uint id for server), position, heading, current tool, animate using (bool): UnreliableInOrder1
+        PlayerUpdate1,           // minus position
+        PlayerUpdate2,           // minus heading
         PlayerJoined,           // uint id, player name :ReliableInOrder2
         PlayerLeft,             // uint id              :ReliableInOrder2
         PlayerSetTeam,          // (uint id for server), byte team   :ReliableInOrder2

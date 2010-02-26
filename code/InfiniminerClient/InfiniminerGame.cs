@@ -24,6 +24,7 @@ namespace Infiniminer
         float volumeLevel = 1.0f;
         NetBuffer msgBuffer = null;
         Song songTitle = null;
+        const float NETWORK_UPDATE_TIME = 0.025f;//usually 0.05
 
         public bool RenderPretty = true;
         public bool DrawFrameRate = false;
@@ -128,11 +129,13 @@ namespace Infiniminer
         {
             // Update the server with our status.
             timeSinceLastUpdate += gameTime.ElapsedGameTime.TotalSeconds;
-            if (timeSinceLastUpdate > 0.05)
+            if (timeSinceLastUpdate > NETWORK_UPDATE_TIME)
             {
                 timeSinceLastUpdate = 0;
                 if (CurrentStateType == "Infiniminer.States.MainGameState")
+                {
                     propertyBag.SendPlayerUpdate();
+                }
             }
 
             // Recieve messages from the server.

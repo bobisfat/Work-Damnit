@@ -17,7 +17,7 @@ namespace Infiniminer
         PlayerTeam[, ,] blockCreatorTeam = null;
         public int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
-        
+        bool sleeping = true;
         int lavaBlockCount = 0;
         int waterBlockCount = 0;
         uint oreFactor = 10;
@@ -60,6 +60,47 @@ namespace Infiniminer
         Dictionary<string, int> varIntBindings = new Dictionary<string, int>();
         Dictionary<string,string> varDescriptions = new Dictionary<string,string>();
         Dictionary<string, bool> varAreMessage = new Dictionary<string, bool>();
+
+        public Vector3 Auth_Position(Vector3 pos,Player pl)//check boundaries and legality of action
+        {
+            BlockType testpoint = BlockAtPoint(pos);
+
+            if (testpoint == BlockType.None || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
+            {//check if player is in walls
+               
+            }
+            else
+            {
+                pl.Ore = 0;//should be calling death function for player
+                pl.Cash = 0;
+                pl.Weight = 0;
+                pl.Health = 0;
+                pl.Alive = false;
+
+                SendResourceUpdate(pl);
+                SendPlayerDead(pl);
+
+                ConsoleWrite("refused" + pl.Handle + " " + pos.X + "/" + pos.Y + "/" + pos.Z);
+                return pl.Position;
+            }
+
+            //if (Distf(pl.Position, pos) > 0.35)
+            //{   //check that players last update is not further than it should be
+            //    ConsoleWrite("refused" + pl.Handle + " speed:" + Distf(pl.Position, pos));
+            //    //should call force update player position
+            //    return pos;// pl.Position;
+            //}
+            //else
+            //{
+            //    return pos;
+            //}
+
+            return pos;
+        }
+        public Vector3 Auth_Heading(Vector3 head)//check boundaries and legality of action
+        {
+            return head;
+        }
 
         public void varBindingsInitialize()
         {
@@ -1314,7 +1355,6 @@ namespace Infiniminer
                 newItem.Position = pos;
                 itemList[newItem.ID] = newItem;
                 SendSetItem(newItem.ID, newItem.Position, newItem.Team, newItem.Heading);
-                ConsoleWrite("Create at " + pos.X + "/" + pos.Y + "/" + pos.Z + " id " + newItem.ID);
         }
         public void SetBlock(ushort x, ushort y, ushort z, BlockType blockType, PlayerTeam team)
         {
@@ -1635,6 +1675,7 @@ namespace Infiniminer
 
                                     if (msgSender.Status == NetConnectionStatus.Connected)
                                     {
+                                        sleeping = false;
                                         ConsoleWrite("CONNECT: " + playerList[msgSender].Handle + " ( " + playerList[msgSender].IP + " )");
                                         SendCurrentMap(msgSender);
                                         SendPlayerJoined(player);
@@ -1647,6 +1688,18 @@ namespace Infiniminer
                                         SendPlayerLeft(player, player.Kicked ? "WAS KICKED FROM THE GAME!" : "HAS ABANDONED THEIR DUTIES!");
                                         if (playerList.ContainsKey(msgSender))
                                             playerList.Remove(msgSender);
+
+                                        sleeping = true;
+                                        foreach (Player p in playerList.Values)
+                                        {
+                                            sleeping = false;
+                                        }
+
+                                        if (sleeping == true)
+                                        {
+                                            ConsoleWrite("HIBERNATING");
+                                        }
+
                                         PublicServerListUpdate();
                                     }
                                 }
@@ -1826,14 +1879,28 @@ namespace Infiniminer
 
                                         case InfiniminerMessage.PlayerUpdate:
                                             {
-                                                player.Position = msgBuffer.ReadVector3();
-                                                player.Heading = msgBuffer.ReadVector3();
+                                                player.Position = Auth_Position(msgBuffer.ReadVector3(),player);
+                                                player.Heading = Auth_Heading(msgBuffer.ReadVector3());
                                                 player.Tool = (PlayerTools)msgBuffer.ReadByte();
                                                 player.UsingTool = msgBuffer.ReadBoolean();
                                                 SendPlayerUpdate(player);
                                             }
                                             break;
-
+                                        case InfiniminerMessage.PlayerUpdate1://minus position
+                                            {
+                                                player.Heading = Auth_Heading(msgBuffer.ReadVector3());
+                                                player.Tool = (PlayerTools)msgBuffer.ReadByte();
+                                                player.UsingTool = msgBuffer.ReadBoolean();
+                                                SendPlayerUpdate(player);
+                                            }
+                                            break;
+                                        case InfiniminerMessage.PlayerUpdate2://minus position and heading
+                                            {
+                                                player.Tool = (PlayerTools)msgBuffer.ReadByte();
+                                                player.UsingTool = msgBuffer.ReadBoolean();
+                                                SendPlayerUpdate(player);
+                                            }
+                                            break;
                                         case InfiniminerMessage.DepositOre:
                                             {
                                                 DepositOre(player);
@@ -1866,6 +1933,9 @@ namespace Infiniminer
 
                                         case InfiniminerMessage.GetItem:
                                             {
+                                                //verify players position before get
+                                                player.Position = Auth_Position(msgBuffer.ReadVector3(), player);
+                                                
                                                 GetItem(player,msgBuffer.ReadString());
                                             }
                                             break;
@@ -1939,7 +2009,13 @@ namespace Infiniminer
                 }
 
                 // Pass control over to waiting threads.
-                Thread.Sleep(1);
+                if(sleeping == true) {
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    Thread.Sleep(1);
+                }
             }
 
             MessageAll("Server going down NOW!");
@@ -2736,7 +2812,8 @@ namespace Infiniminer
                 {
                     if (bPair.Value.ID == ID)
                     {
-                        if (Distf(player.Position,bPair.Value.Position) < 1.0)
+                       
+                        if (Distf(player.Position, bPair.Value.Position) < 1.0)
                         {
                             itemList.Remove(bPair.Key);
                             SendSetItem(bPair.Key);
