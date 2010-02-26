@@ -302,7 +302,7 @@ namespace Infiniminer
                                                     propertyBag.blockEngine.RemoveBlock(x, y, z);
                                                 propertyBag.blockEngine.AddBlock(x, y, z, blockType);
                                                 CheckForStandingInLava();
-                                                CheckForStandingInWater();
+                                                //CheckForStandingInWater();
                                             }
                                         }
                                         break;
@@ -479,23 +479,6 @@ namespace Infiniminer
             if (upperBlock == BlockType.Lava || lowerBlock == BlockType.Lava || midBlock == BlockType.Lava)
             {
                 propertyBag.KillPlayer(Defines.deathByLava);
-            }
-        }
-
-        private void CheckForStandingInWater()
-        {
-            // Copied from TryToMoveTo; responsible for checking if lava has flowed over us.
-
-            Vector3 movePosition = propertyBag.playerPosition;
-            Vector3 midBodyPoint = movePosition + new Vector3(0, -0.7f, 0);
-            Vector3 lowerBodyPoint = movePosition + new Vector3(0, -1.4f, 0);
-            BlockType lowerBlock = propertyBag.blockEngine.BlockAtPoint(lowerBodyPoint);
-            BlockType midBlock = propertyBag.blockEngine.BlockAtPoint(midBodyPoint);
-            BlockType upperBlock = propertyBag.blockEngine.BlockAtPoint(movePosition);
-            if (upperBlock == BlockType.Water || lowerBlock == BlockType.Water || midBlock == BlockType.Water)
-            {
-                //Somehow slow down the player here...
-                //propertyBag.KillPlayer(Defines.deathByLava);
             }
         }
 

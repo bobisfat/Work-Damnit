@@ -1358,6 +1358,7 @@ namespace Infiniminer
             {
                 DoWaterStuff();
                 DoLavaStuff();
+                DoPumpStuff();
             }
                 //return lavaBlockCount;
                 return waterBlockCount;
@@ -1842,6 +1843,7 @@ namespace Infiniminer
                 {
                     DoLavaStuff();
                     DoWaterStuff();
+                    DoPumpStuff();
                     lastFlowCalc = DateTime.Now;
                 }
 
@@ -1997,6 +1999,157 @@ namespace Infiniminer
                                     SetBlock(i, j, (ushort)(k + 1), BlockType.Lava, PlayerTeam.None);
                                     flowSleep[i, j, k + 1] = true;
                                 }
+                            }
+                        }
+        }
+
+        public void DoPumpStuff()
+        {
+            bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+
+            for (ushort i = 0; i < MAPSIZE; i++)
+                for (ushort j = 0; j < MAPSIZE; j++)
+                    for (ushort k = 0; k < MAPSIZE; k++)
+                        flowSleep[i, j, k] = false;
+
+            for (ushort i = 0; i < MAPSIZE; i++)
+                for (ushort j = 0; j < MAPSIZE; j++)
+                    for (ushort k = 0; k < MAPSIZE; k++)
+                        if (blockList[i, j, k] == BlockType.Pump && !flowSleep[i, j, k])
+                        {
+                            if (i > 0 && blockList[i, j, k + 1] == BlockType.Water)
+                            {
+                                SetBlock(i, j, (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i, j, k - 1] == BlockType.Water)
+                            {
+                                SetBlock(i, j, (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j, k - 1] = true;
+                            }
+                            if (i > 0 && blockList[i, j + 1, k] == BlockType.Water)
+                            {
+                                SetBlock(i, (ushort)(j + 1), k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j + 1, k] = true;
+                            }
+                            if (i > 0 && blockList[i, j + 1, k + 1] == BlockType.Water)
+                            {
+                                SetBlock(i, (ushort)(j + 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j + 1, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i, j + 1, k - 1] == BlockType.Water)
+                            {
+                                SetBlock(i, (ushort)(j + 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j + 1, k - 1] = true;
+                            }
+                            if (i > 0 && blockList[i, j - 1, k] == BlockType.Water)
+                            {
+                                SetBlock(i, (ushort)(j - 1), k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j - 1, k] = true;
+                            }
+                            if (i > 0 && blockList[i, j - 1, k + 1] == BlockType.Water)
+                            {
+                                SetBlock(i, (ushort)(j - 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j - 1, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i, j - 1, k - 1] == BlockType.Water)
+                            {
+                                SetBlock(i, (ushort)(j - 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i, j - 1, k - 1] = true;
+                            }
+                            //
+                            //
+                            if (i > 0 && blockList[i + 1, j, k] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), j, k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j, k] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j, k + 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), j, (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j, k - 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), j, (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j, k - 1] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j + 1, k] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), (ushort)(j + 1), k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j + 1, k] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j + 1, k + 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), (ushort)(j + 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j + 1, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j + 1, k - 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), (ushort)(j + 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j + 1, k - 1] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j - 1, k] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), (ushort)(j - 1), k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j - 1, k] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j - 1, k + 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), (ushort)(j - 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j - 1, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i + 1, j - 1, k - 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i + 1), (ushort)(j - 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i + 1, j - 1, k - 1] = true;
+                            }
+                            //
+                            //
+                            if (i > 0 && blockList[i - 1, j, k] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), j, k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j, k] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j, k + 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), j, (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j, k - 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), j, (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j, k - 1] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j + 1, k] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), (ushort)(j + 1), k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j + 1, k] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j + 1, k + 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), (ushort)(j + 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j + 1, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j + 1, k - 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), (ushort)(j + 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j + 1, k - 1] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j - 1, k] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), (ushort)(j - 1), k, BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j - 1, k] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j - 1, k + 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), (ushort)(j - 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j - 1, k + 1] = true;
+                            }
+                            if (i > 0 && blockList[i - 1, j - 1, k - 1] == BlockType.Water)
+                            {
+                                SetBlock((ushort)(i - 1), (ushort)(j - 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
+                                flowSleep[i - 1, j - 1, k - 1] = true;
                             }
                         }
         }
