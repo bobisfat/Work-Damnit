@@ -17,6 +17,7 @@ namespace Infiniminer
 {
     public enum PlayerClass
     {
+        None,
         Prospector,
         Miner,
         Engineer,
