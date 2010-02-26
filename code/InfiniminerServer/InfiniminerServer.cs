@@ -13,6 +13,7 @@ namespace Infiniminer
     {
         InfiniminerNetServer netServer = null;
         public BlockType[, ,] blockList = null;    // In game coordinates, where Y points up.
+        public Int32[, ,,] blockListContent = null;
         PlayerTeam[, ,] blockCreatorTeam = null;
         const int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
@@ -1298,6 +1299,13 @@ namespace Infiniminer
                 beaconList[new Vector3(x, y, z)] = newBeacon;
                 SendSetBeacon(new Vector3(x, y+1, z), newBeacon.ID, newBeacon.Team);
             }
+            else if(blockType == BlockType.Pipe)
+            {
+                blockListContent[x, y, z, 0] = -1;
+                blockListContent[x, y, z, 1] = -1;
+                blockListContent[x, y, z, 2] = -1;
+                blockListContent[x, y, z, 3] = -1;
+            }
 
             if (blockType == BlockType.None && (blockList[x, y, z] == BlockType.BeaconRed || blockList[x, y, z] == BlockType.BeaconBlue))
             {
@@ -1333,12 +1341,17 @@ namespace Infiniminer
             // Create our block world, translating the coordinates out of the cave generator (where Z points down)
             BlockType[, ,] worldData = CaveGenerator.GenerateCaveSystem(MAPSIZE, includeLava, oreFactor, includeWater);
             blockList = new BlockType[MAPSIZE, MAPSIZE, MAPSIZE];
+            blockListContent = new Int32[MAPSIZE, MAPSIZE, MAPSIZE,10];
             blockCreatorTeam = new PlayerTeam[MAPSIZE, MAPSIZE, MAPSIZE];
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
                     {
                         blockList[i, (ushort)(MAPSIZE - 1 - k), j] = worldData[i, j, k];
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 0] = -1;//pipe src x
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 1] = -1;//pipe src y
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 2] = -1;//pipe dst x
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 3] = -1;//pipe dst y
                         blockCreatorTeam[i, j, k] = PlayerTeam.None;
                     }
             for (int i = 0; i < MAPSIZE * 2; i++)
