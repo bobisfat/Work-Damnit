@@ -267,6 +267,21 @@ namespace Infiniminer.States
 
             if (moveVector.X != 0 || moveVector.Z != 0)
             {
+                //grab item
+                foreach (KeyValuePair<string, Item> bPair in _P.itemList)
+                {
+                   //  public double Get3DDistance(int x1, int y1, int z1, int x2, int y2, int z2)
+                    float dx = bPair.Value.Position.X - _P.playerPosition.X;
+                    float dy = bPair.Value.Position.Y - _P.playerPosition.Y;
+                    float dz = bPair.Value.Position.Z - _P.playerPosition.Z;
+                    float distance = (float)(Math.Sqrt(dx * dx + dy * dy + dz * dz));
+
+                    if (distance < 1.0)
+                    {
+                        _P.GetItem(bPair.Value.ID);
+                        break;
+                    }
+                }
                 // "Flatten" the movement vector so that we don"t move up/down.
                 moveVector.Y = 0;
                 moveVector.Normalize();

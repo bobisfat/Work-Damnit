@@ -263,27 +263,25 @@ namespace Infiniminer
                                         break;
                                     case InfiniminerMessage.SetItem:
                                         {
-                                            Vector3 position = msgBuffer.ReadVector3();
-                                            string text = msgBuffer.ReadString();
-                                            PlayerTeam team = (PlayerTeam)msgBuffer.ReadByte();
-                                            Vector3 heading = msgBuffer.ReadVector3();
-                                            if (text == "")
-                                            {
-                                                if (propertyBag.beaconList.ContainsKey(position))
-                                                    propertyBag.beaconList.Remove(position);
-                                            }
-                                            else
-                                            {
-                                               // propertyBag.playerList[playerId] = new Player(null, (Game)this);
-                                                Item newItem = new Item((Game)this);
-                                                newItem.ID = text;
-                                                newItem.Team = team;
-                                                newItem.Heading = heading;
-                                                propertyBag.itemList.Add(position, newItem);
-                                            }
+                                            Item newItem = new Item((Game)this);
+                                            newItem.ID = msgBuffer.ReadString();
+                                            newItem.Position = msgBuffer.ReadVector3();
+                                            newItem.Team = (PlayerTeam)msgBuffer.ReadByte();
+                                            newItem.Heading = msgBuffer.ReadVector3();
+                                           
+                                            propertyBag.itemList.Add(newItem.ID, newItem);
                                         }
                                         break;
-
+                                    case InfiniminerMessage.SetItemRemove:
+                                        {
+                                            string text = msgBuffer.ReadString();
+                                          
+                                            if (propertyBag.itemList.ContainsKey(text))
+                                                propertyBag.itemList.Remove(text);
+                                           
+                                        }
+                                        break;
+    
                                     case InfiniminerMessage.TriggerConstructionGunAnimation:
                                         {
                                             propertyBag.constructionGunAnimation = msgBuffer.ReadFloat();

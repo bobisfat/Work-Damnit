@@ -106,6 +106,8 @@ namespace Infiniminer
         TriggerConstructionGunAnimation,
         SetBeacon,              // vector3 position, string text ("" means remove)
         SetItem,
+        GetItem,
+        SetItemRemove,
     }
 
     public enum ChatMessageType

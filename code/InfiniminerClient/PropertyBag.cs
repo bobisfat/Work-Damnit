@@ -70,7 +70,7 @@ namespace Infiniminer
         public uint teamBlueCash = 0;
         public PlayerTeam teamWinners = PlayerTeam.None;
         public Dictionary<Vector3, Beacon> beaconList = new Dictionary<Vector3, Beacon>();
-        public Dictionary<Vector3, Item> itemList = new Dictionary<Vector3, Item>();
+        public Dictionary<string, Item> itemList = new Dictionary<string, Item>();
 
         // Screen effect stuff.
         private Random randGen = new Random();
@@ -170,6 +170,14 @@ namespace Infiniminer
             sw.Close();
             fs.Close();
             addChatMessage("Map saved to " + filename, ChatMessageType.SayAll, 10f);//DateTime.Now.ToUniversalTime());
+        }
+
+        public void GetItem(string ID)
+        {
+            NetBuffer msgBuffer = netClient.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.GetItem);
+            msgBuffer.Write(ID);
+            netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
 
         public void KillPlayer(string deathMessage)

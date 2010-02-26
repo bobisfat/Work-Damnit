@@ -20,6 +20,7 @@ namespace Infiniminer
         public string ID;
         public PlayerTeam Team;
         public Vector3 Heading;
+        public Vector3 Position;
         public int Type;
 
         public bool QueueAnimationBreak = false;

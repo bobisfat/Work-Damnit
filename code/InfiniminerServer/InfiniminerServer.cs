@@ -1271,7 +1271,7 @@ namespace Infiniminer
         List<string> beaconIDList = new List<string>();
         Dictionary<Vector3, Beacon> beaconList = new Dictionary<Vector3, Beacon>();
         List<string> itemIDList = new List<string>();
-        Dictionary<Vector3, Item> itemList = new Dictionary<Vector3, Item>();
+        Dictionary<string, Item> itemList = new Dictionary<string, Item>();
 
         Random randGen = new Random();
         public string _GenerateBeaconID()
@@ -1311,9 +1311,10 @@ namespace Infiniminer
                 newItem.ID = GenerateItemID();
                 newItem.Team = team;
                 newItem.Heading = heading;
-
-                itemList[pos] = newItem;
-                SendSetItem(pos, newItem.ID, newItem.Team, newItem.Heading);
+                newItem.Position = pos;
+                itemList[newItem.ID] = newItem;
+                SendSetItem(newItem.ID, newItem.Position, newItem.Team, newItem.Heading);
+                ConsoleWrite("Create at " + pos.X + "/" + pos.Y + "/" + pos.Z + " id " + newItem.ID);
         }
         public void SetBlock(ushort x, ushort y, ushort z, BlockType blockType, PlayerTeam team)
         {
@@ -1403,7 +1404,14 @@ namespace Infiniminer
             double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);
             return distance;
         }
-
+        public double Distf(Vector3 x, Vector3 y)
+        {
+            float dx = y.X - x.X;
+            float dy = y.Y - x.Y;
+            float dz = y.Z - x.Z;
+            float dist = (float)(Math.Sqrt(dx * dx + dy * dy + dz * dz));
+            return dist;
+        }
         public string GetExplosionPattern(int n)
         {
             string output="";
@@ -1853,6 +1861,12 @@ namespace Infiniminer
                                                 InfiniminerSound sound = (InfiniminerSound)msgBuffer.ReadByte();
                                                 Vector3 position = msgBuffer.ReadVector3();
                                                 PlaySound(sound, position);
+                                            }
+                                            break;
+
+                                        case InfiniminerMessage.GetItem:
+                                            {
+                                                GetItem(player,msgBuffer.ReadString());
                                             }
                                             break;
                                     }
@@ -2713,6 +2727,31 @@ namespace Infiniminer
             }
         }
 
+        public void GetItem(Player player,string ID)
+        {
+            if (player.Alive)
+            {
+                
+                foreach (KeyValuePair<string, Item> bPair in itemList)
+                {
+                    if (bPair.Value.ID == ID)
+                    {
+                        if (Distf(player.Position,bPair.Value.Position) < 1.0)
+                        {
+                            itemList.Remove(bPair.Key);
+                            SendSetItem(bPair.Key);
+                            player.Cash = player.Cash + 5;
+                            DepositCash(player);
+                        }
+
+                        foreach (Player p in playerList.Values)
+                            SendResourceUpdate(p);
+
+                        return;
+                    }
+                }
+            }
+        }
         public void DepositCash(Player player)
         {
             if (player.Cash <= 0)
@@ -2891,12 +2930,12 @@ namespace Infiniminer
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
 
-        public void SendSetItem(Vector3 position, string text, PlayerTeam team, Vector3 heading)
+        public void SendSetItem(string text, Vector3 position, PlayerTeam team, Vector3 heading)
         {
             NetBuffer msgBuffer = netServer.CreateBuffer();
             msgBuffer.Write((byte)InfiniminerMessage.SetItem);
-            msgBuffer.Write(position);
             msgBuffer.Write(text);
+            msgBuffer.Write(position);
             msgBuffer.Write((byte)team);
             msgBuffer.Write(heading);
 
@@ -2904,7 +2943,16 @@ namespace Infiniminer
                 if (netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
+        public void SendSetItem(string text)//empty item with no heading
+        {
+            NetBuffer msgBuffer = netServer.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.SetItemRemove);
+            msgBuffer.Write(text);
 
+            foreach (NetConnection netConn in playerList.Keys)
+                if (netConn.Status == NetConnectionStatus.Connected)
+                    netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
+        }
         public void SendPlayerJoined(Player player)
         {
             NetBuffer msgBuffer;
@@ -2930,15 +2978,15 @@ namespace Infiniminer
             }
 
             // Let this player know about all placed beacons.
-            foreach (KeyValuePair<Vector3, Item> bPair in itemList)
+            foreach (KeyValuePair<string, Item> bPair in itemList)
             {
-                Vector3 position = bPair.Key;
+                Vector3 position = bPair.Value.Position;
                 Vector3 heading = bPair.Value.Heading;
                 position.Y += 1; //fixme
                 msgBuffer = netServer.CreateBuffer();
                 msgBuffer.Write((byte)InfiniminerMessage.SetItem);
+                msgBuffer.Write(bPair.Key);
                 msgBuffer.Write(position);
-                msgBuffer.Write(bPair.Value.ID);
                 msgBuffer.Write((byte)bPair.Value.Team);
                 msgBuffer.Write(heading);
 
