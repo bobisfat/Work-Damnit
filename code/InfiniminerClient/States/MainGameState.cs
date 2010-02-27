@@ -554,23 +554,33 @@ namespace Infiniminer.States
                     }
                     break;
                 case Buttons.Deposit:
-                    if (_P.AtBankTerminal())
+                    BlockType targetd =_P.Interact();
+                    if (targetd == BlockType.BankRed && _P.playerTeam == PlayerTeam.Red || targetd == BlockType.BankBlue && _P.playerTeam == PlayerTeam.Blue)
                     {
                         _P.DepositOre();
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
-                    if (_P.AtGenerator())
+                    else if (targetd == BlockType.Generator)
+                    {
+                        _P.PlaySound(InfiniminerSound.ClickHigh);
+                    }
+                    else if (targetd == BlockType.Pipe)
                     {
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
                     break;
                 case Buttons.Withdraw:
-                    if (_P.AtBankTerminal())
+                    BlockType targetw = _P.Interact();
+                    if (targetw == BlockType.BankRed && _P.playerTeam == PlayerTeam.Red || targetw == BlockType.BankBlue && _P.playerTeam == PlayerTeam.Blue)
                     {
                         _P.WithdrawOre();
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
-                    if (_P.AtGenerator())
+                    else if (targetw == BlockType.Generator)
+                    {
+                        _P.PlaySound(InfiniminerSound.ClickHigh);
+                    }
+                    else if (targetw == BlockType.Pipe)
                     {
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }

@@ -327,11 +327,18 @@ namespace Infiniminer
             int altitude = (int)(_P.playerPosition.Y - 64 + Defines.GROUND_LEVEL);
             RenderMessageCenter(spriteBatch, String.Format("ALTITUDE: {0:00}", altitude), new Vector2(graphicsDevice.Viewport.Width - 90, graphicsDevice.Viewport.Height - 20), altitude >= 0 ? Color.Gray : Defines.IM_RED, Color.Black);
 
-            // Draw bank instructions.
-            if (_P.AtBankTerminal())
-                RenderMessageCenter(spriteBatch, "8: DEPOSIT 50 ORE  9: WITHDRAW 50 ORE", new Vector2(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2 + 60), Color.White, Color.Black);
-            if (_P.AtGenerator())
-                RenderMessageCenter(spriteBatch, "8: Generator On  9: Generator Off", new Vector2(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2 + 60), Color.White, Color.Black);
+            string interact = _P.strInteract();
+            if (interact != "")//interact with stuffs
+            {
+                RenderMessageCenter(spriteBatch, interact, new Vector2(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2 + 60), Color.White, Color.Black);
+            }
+
+            //if (_P.AtBankTerminal())
+            //    RenderMessageCenter(spriteBatch, "8: DEPOSIT 50 ORE  9: WITHDRAW 50 ORE", new Vector2(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2 + 60), Color.White, Color.Black);
+            //if (_P.AtGenerator())
+            //    RenderMessageCenter(spriteBatch, "8: Generator On  9: Generator Off", new Vector2(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2 + 60), Color.White, Color.Black);
+            //if (_P.AtPipe())
+            //    RenderMessageCenter(spriteBatch, "8: Rotate Left 9: Rotate Right", new Vector2(graphicsDevice.Viewport.Width / 2, graphicsDevice.Viewport.Height / 2 + 60), Color.White, Color.Black);
 
             // Are they trying to change class when they cannot?
             //if (Keyboard.GetState().IsKeyDown(Keys.M) && _P.playerPosition.Y <= 64 - Defines.GROUND_LEVEL && _P.chatMode == ChatMessageType.None)

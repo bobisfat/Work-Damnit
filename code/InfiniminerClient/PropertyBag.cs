@@ -717,7 +717,47 @@ namespace Infiniminer
                 }
         }
 
-       // Returns true if the player is able to use generator
+        public string strInteract()
+        {
+            Vector3 hitPoint = Vector3.Zero;
+            Vector3 buildPoint = Vector3.Zero;
+            if (!blockEngine.RayCollision(playerPosition, playerCamera.GetLookVector(), 2.5f, 25, ref hitPoint, ref buildPoint))
+                return "";
+
+            // If it's a valid bank object, we're good!
+            BlockType blockType = blockEngine.BlockAtPoint(hitPoint);
+
+            if (blockType == BlockType.BankRed && playerTeam == PlayerTeam.Red)
+            {
+                return "8: DEPOSIT 50 ORE  9: WITHDRAW 50 ORE";
+            }
+            else if (blockType == BlockType.BankBlue && playerTeam == PlayerTeam.Blue)
+            {
+                return "8: DEPOSIT 50 ORE  9: WITHDRAW 50 ORE";
+            }
+            else if (blockType == BlockType.Generator)
+            {
+                return "8: Generator On  9: Generator Off";
+            }
+            else if (blockType == BlockType.Pipe)
+            {
+                return "8: Rotate Left 9: Rotate Right";
+            }
+
+            return "";
+        }
+        public BlockType Interact()
+        {
+            Vector3 hitPoint = Vector3.Zero;
+            Vector3 buildPoint = Vector3.Zero;
+            if (!blockEngine.RayCollision(playerPosition, playerCamera.GetLookVector(), 2.5f, 25, ref hitPoint, ref buildPoint))
+                return BlockType.None;
+
+            // If it's a valid bank object, we're good!
+            BlockType blockType = blockEngine.BlockAtPoint(hitPoint);
+            return blockType;
+        }
+
         public bool AtGenerator()
         {
             // Figure out what we're looking at.
@@ -733,6 +773,20 @@ namespace Infiniminer
             return false;
         }
 
+        public bool AtPipe()
+        {
+            // Figure out what we're looking at.
+            Vector3 hitPoint = Vector3.Zero;
+            Vector3 buildPoint = Vector3.Zero;
+            if (!blockEngine.RayCollision(playerPosition, playerCamera.GetLookVector(), 2.5f, 25, ref hitPoint, ref buildPoint))
+                return false;
+
+            // If it's a valid bank object, we're good!
+            BlockType blockType = blockEngine.BlockAtPoint(hitPoint);
+            if (blockType == BlockType.Pipe)
+                return true;
+            return false;
+        }
 
         // Returns true if the player is able to use a bank right now.
         public bool AtBankTerminal()
