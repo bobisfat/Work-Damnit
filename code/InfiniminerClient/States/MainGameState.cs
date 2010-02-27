@@ -182,7 +182,7 @@ namespace Infiniminer.States
                                 _P.KillPlayer(Defines.deathByFall);
                             }
 
-                            _P.SendPlayerUpdate();
+                            _P.SendPlayerHurt();//was update
                         }
                     }
                 }

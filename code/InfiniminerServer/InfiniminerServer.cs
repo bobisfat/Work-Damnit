@@ -66,22 +66,29 @@ namespace Infiniminer
             BlockType testpoint = BlockAtPoint(pos);
 
             if (testpoint == BlockType.None || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
-            {//check if player is in walls
-               
+            {//check if player is not in wall
+               //falldamage
             }
             else
             {
-                pl.Ore = 0;//should be calling death function for player
-                pl.Cash = 0;
-                pl.Weight = 0;
-                pl.Health = 0;
-                pl.Alive = false;
+                if (pl.Alive)
+                {
+                    pl.Ore = 0;//should be calling death function for player
+                    pl.Cash = 0;
+                    pl.Weight = 0;
+                    pl.Health = 0;
+                    pl.Alive = false;
 
-                SendResourceUpdate(pl);
-                SendPlayerDead(pl);
+                    SendResourceUpdate(pl);
+                    SendPlayerDead(pl);
 
-                ConsoleWrite("refused" + pl.Handle + " " + pos.X + "/" + pos.Y + "/" + pos.Z);
-                return pl.Position;
+                    ConsoleWrite("refused" + pl.Handle + " " + pos.X + "/" + pos.Y + "/" + pos.Z);
+                    return pl.Position;
+                }
+                else//player is dead, return position silent
+                {
+                    return pl.Position;
+                }
             }
 
             //if (Distf(pl.Position, pos) > 0.35)
@@ -1901,6 +1908,26 @@ namespace Infiniminer
                                                 SendPlayerUpdate(player);
                                             }
                                             break;
+                                        case InfiniminerMessage.PlayerHurt://client speaks of fall damage
+                                            {
+                                                uint newhp = msgBuffer.ReadUInt32();
+                                                if (newhp < player.Health)
+                                                {
+                                                    player.Health = newhp;
+                                                    if (player.Health < 1)
+                                                    {
+                                                        player.Ore = 0;//should be calling death function for player
+                                                        player.Cash = 0;
+                                                        player.Weight = 0;
+                                                        player.Health = 0;
+                                                        player.Alive = false;
+
+                                                        SendResourceUpdate(player);
+                                                        SendPlayerDead(player);
+                                                    }
+                                                }
+                                            }
+                                            break;
                                         case InfiniminerMessage.DepositOre:
                                             {
                                                 DepositOre(player);
@@ -1972,6 +1999,19 @@ namespace Infiniminer
                     DoWaterStuff();
                     DoPumpStuff();
                     lastFlowCalc = DateTime.Now;
+                    foreach (Player p in playerList.Values)//regeneration
+                    {
+                        if (p.Alive)
+                            if (p.Health >= p.HealthMax)
+                            {
+                                p.Health = p.HealthMax;
+                            }
+                            else
+                            {
+                                p.Health = p.Health + 1;
+                                SendResourceUpdate(p);
+                            }
+                    }
                 }
 
                 // Handle console keypresses.

@@ -800,5 +800,15 @@ namespace Infiniminer
                 netClient.SendMessage(msgBuffer, NetChannel.UnreliableInOrder1);
             }
         }
+        public void SendPlayerHurt()
+        {
+            if (netClient.Status != NetConnectionStatus.Connected)
+                return;
+
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerHurt);
+                msgBuffer.Write(playerHealth);
+                netClient.SendMessage(msgBuffer, NetChannel.ReliableInOrder1);
+        }
     }
 }
