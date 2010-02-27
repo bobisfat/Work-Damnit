@@ -454,12 +454,22 @@ namespace Infiniminer
                 if (_P.screenEffectCounter > 2)
                     _P.screenEffect = ScreenEffect.None;
             }
-            if (_P.screenEffect == ScreenEffect.Drown)
+            if (_P.screenEffect == ScreenEffect.Water)
             {
-                Color drawColor = new Color(0, 0, 1, 1 - (float)_P.screenEffectCounter * 0.5f);
+                Color drawColor = new Color(0, 0, 1, 1 - (float)_P.screenEffectCounter);
                 spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
                 if (_P.screenEffectCounter > 2)
                     _P.screenEffect = ScreenEffect.None;
+            }
+            if (_P.screenEffect == ScreenEffect.Drown)
+            {
+                Color drawColor = new Color(0.25f, 0, 1.0f, 0.5f +(float)_P.screenEffectCounter*0.25f);
+                spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
+                if (_P.screenEffectCounter > 0.8)
+                {
+                    _P.screenEffect = ScreenEffect.Water;
+                    _P.screenEffectCounter = 1;
+                }
             }
 
             // Draw the help screen.
