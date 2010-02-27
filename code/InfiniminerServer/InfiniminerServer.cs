@@ -2263,17 +2263,17 @@ namespace Infiniminer
 
         public void DoWaterStuff()
         {
-            bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+           // bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+
+            //for (ushort i = 0; i < MAPSIZE; i++)
+            //    for (ushort j = 0; j < MAPSIZE; j++)
+            //        for (ushort k = 0; k < MAPSIZE; k++)
+            //            flowSleep[i, j, k] = false;
 
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        flowSleep[i, j, k] = false;
-
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k])
+                        if (blockList[i, j, k] == BlockType.Water)// && !flowSleep[i, j, k])
                         {
                             // RULES FOR LAVA EXPANSION:
                             // if the block below is lava, do nothing
@@ -2286,32 +2286,32 @@ namespace Infiniminer
                             if (i > 0 && blockList[i - 1, j, k] == BlockType.Lava)
                             {
                                 SetBlock((ushort)(i - 1), j, k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i - 1, j, k] = true;
+                              //  flowSleep[i - 1, j, k] = true;
                             }
                             if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.Lava)
                             {
                                 SetBlock((ushort)(i + 1), j, k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i + 1, j, k] = true;
+                             //   flowSleep[i + 1, j, k] = true;
                             }
                             if (k > 0 && blockList[i, j - 1, k] == BlockType.Lava)
                             {
                                 SetBlock(i, (ushort)(j - 1), k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, (ushort)(j - 1), k] = true;
+                             //   flowSleep[i, (ushort)(j - 1), k] = true;
                             }
                             if (k > 0 && blockList[i, (ushort)(j + 1), k] == BlockType.Lava)
                             {
                                 SetBlock(i, (ushort)(j + 1), k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, (ushort)(j + 1), k] = true;
+                              //  flowSleep[i, (ushort)(j + 1), k] = true;
                             }
                             if (k > 0 && blockList[i, j, k - 1] == BlockType.Lava)
                             {
                                 SetBlock(i, j, (ushort)(k - 1), BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, j, k - 1] = true;
+                             //   flowSleep[i, j, k - 1] = true;
                             }
                             if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.Lava)
                             {
                                 SetBlock(i, j, (ushort)(k + 1), BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, j, k + 1] = true;
+                             //   flowSleep[i, j, k + 1] = true;
                             }
 
                             if (varGetB("roadabsorbs"))
@@ -2320,24 +2320,24 @@ namespace Infiniminer
                                 if (typeAbove == BlockType.Road)
                                 {
                                     SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
-                                    flowSleep[i, j, k] = true;
+                                 //   flowSleep[i, j, k] = true;
                                 }
                             }
                             BlockType typeBelow = (j == 0) ? BlockType.Water : blockList[i, j - 1, k];
-                            if (typeBelow == BlockType.Pipe)//none
+                            if (typeBelow == BlockType.Pipe)//none//trying radius fill
                             {
                                 if (j > 0)
                                 {
-                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
+                                   // SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
                                     //flowSleep[i, j - 1, k] = true;
 
                                     //beta waterfalls
-                                    SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                    //SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
                                 }
                             }
                             else if (typeBelow == BlockType.Water || typeBelow == BlockType.None)
                             {
-                                ushort maxradius = 0;//1
+                                ushort maxradius = 1;//1
            
                                 while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
                                 {
@@ -2353,7 +2353,7 @@ namespace Infiniminer
                                                     {
                                                         SetBlock(a, (ushort)(j-1), b, BlockType.Water, PlayerTeam.None);
                                                         SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
-                                                        
+                                                        //Disturb(i, j, k, 4);//was supposed to wake up water around breaks
                                                         maxradius = 26;
                                                         a = 65;
                                                         b = 65;
@@ -2400,7 +2400,38 @@ namespace Infiniminer
                             }
                         }
         }
+        public void Disturb(ushort i, ushort j, ushort k, ushort rad)
+        {
+      
+                                ushort maxradius = rad;//1
+           
+                                //while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
+                                //{
+                                    for (ushort a = (ushort)(-maxradius + i); a < maxradius + i; a++)
+                                    {
+                                        for (ushort b = (ushort)(-maxradius + k); b < maxradius + k; b++)
+                                        {
+                                           
+                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j-1 > 0)
+                                                if (blockList[a, j-1, b] == BlockType.None)
+                                                {
+                                                    if(blockTrace(a,(ushort)(j-1),b,i,(ushort)(j-1),k,BlockType.Water))
+                                                    {
+                                                        SetBlock(a, (ushort)(j-1), b, BlockType.Water, PlayerTeam.None);
+                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
+                                                        
+                                                        maxradius = 26;
+                                                        a = 65;
+                                                        b = 65;
+                                                    }
+                                                }
+                                        }
 
+                                    }
+                                  //  return;
+                                 //   maxradius += 1;
+                               // }
+        }
         public BlockType BlockAtPoint(Vector3 point)
         {
             ushort x = (ushort)point.X;
