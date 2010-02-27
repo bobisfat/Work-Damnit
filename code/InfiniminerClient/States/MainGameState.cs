@@ -124,7 +124,7 @@ namespace Infiniminer.States
             bool swimming = false;
 
             Vector3 footPosition = _P.playerPosition + new Vector3(0f, -1.5f, 0f);
-            Vector3 headPosition = _P.playerPosition + new Vector3(0f, 0.15f, 0f);
+            Vector3 headPosition = _P.playerPosition + new Vector3(0f, 0.1f, 0f);
             Vector3 midPosition = _P.playerPosition + new Vector3(0f, -0.7f, 0f);
 
            // if (!_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))

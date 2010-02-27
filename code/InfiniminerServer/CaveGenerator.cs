@@ -195,8 +195,12 @@ namespace Infiniminer
 
                 if (data[x, y, z] == BlockType.None && z + 1 < size - 1)
                 {
-                    data[x, y, z] = BlockType.Spring;//TEMPORARY Rock;
+                    data[x, y, z] = BlockType.Spring;
                     data[x, y, z + 1] = BlockType.Water;
+                    if (z+2 < size - 2)
+                    {
+                        data[x, y, z + 2] = BlockType.Water;
+                    }
                     numFlows -= 1;
                 }
             }
