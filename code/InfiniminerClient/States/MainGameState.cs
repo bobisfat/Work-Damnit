@@ -132,7 +132,14 @@ namespace Infiniminer.States
                 if(_P.blockEngine.BlockAtPoint(footPosition) == BlockType.Water || _P.blockEngine.BlockAtPoint(headPosition) == BlockType.Water || _P.blockEngine.BlockAtPoint(midPosition) == BlockType.Water) 
                 {
                     swimming = true;
-                    _P.playerHoldBreath -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    if (_P.blockEngine.BlockAtPoint(headPosition) == BlockType.Water)
+                    {
+                        _P.playerHoldBreath -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    }
+                    else
+                    {
+                        _P.playerHoldBreath = 20;
+                    }
                 }
                 else
 	            {
@@ -151,12 +158,13 @@ namespace Infiniminer.States
                     //_P.addChatMessage("Breath held.." + _P.playerHoldBreath, ChatMessageType.SayAll, 10);
                     if (_P.playerHoldBreath <= 10)
                     {
-                        _P.screenEffect = ScreenEffect.Fall;
+                        _P.screenEffect = ScreenEffect.Drown;
                         if (((int)_P.playerHealth - ((9 - _P.playerHoldBreath) * 10)) > 0)
                         {
-                            _P.playerHealth -= (uint)(9 - _P.playerHoldBreath) * 10;
+                            _P.playerHealth -= (uint)(9 - _P.playerHoldBreath) * (_P.playerHealthMax / 10);
+                            _P.SendPlayerHurt();
                             _P.lastBreath = DateTime.Now;
-                            _P.screenEffectCounter = 0.5;
+                            _P.screenEffectCounter = 0.95;
                         }
                         else
                         {

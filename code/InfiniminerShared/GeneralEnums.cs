@@ -59,6 +59,7 @@ namespace Infiniminer
         Teleport,
         Fall,
         Explosion,
+        Drown,
     }
 
     public enum InfiniminerSound
