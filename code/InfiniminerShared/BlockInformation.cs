@@ -34,6 +34,7 @@ namespace Infiniminer
         TransRed,
         TransBlue,
         Water,
+        Spring,
         Vacuum,
         MAXIMUM
     }
@@ -82,6 +83,7 @@ namespace Infiniminer
         RoadBottom,
         BeaconRed,
         BeaconBlue,
+        Spring,
         Water,
         TransRed,   // THESE MUST BE THE LAST TWO TEXTURES
         TransBlue,
@@ -165,6 +167,8 @@ namespace Infiniminer
                 case BlockType.Water:
                     return BlockTexture.Water;
                 case BlockType.Rock:
+                    return BlockTexture.Rock;
+                case BlockType.Spring:
                     return BlockTexture.Rock;
                 case BlockType.Ore:
                     return BlockTexture.Ore;
