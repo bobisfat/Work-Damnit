@@ -34,6 +34,7 @@ namespace Infiniminer
         TransRed,
         TransBlue,
         Water,
+        Vacuum,
         MAXIMUM
     }
 
