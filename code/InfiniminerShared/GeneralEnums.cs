@@ -97,6 +97,7 @@ namespace Infiniminer
         PlayerUpdate,           // (uint id for server), position, heading, current tool, animate using (bool): UnreliableInOrder1
         PlayerUpdate1,           // minus position
         PlayerUpdate2,           // minus heading
+        PlayerInteract,         //player mashes button 1 or 2 on block at x,y,z
         PlayerJoined,           // uint id, player name :ReliableInOrder2
         PlayerLeft,             // uint id              :ReliableInOrder2
         PlayerSetTeam,          // (uint id for server), byte team   :ReliableInOrder2

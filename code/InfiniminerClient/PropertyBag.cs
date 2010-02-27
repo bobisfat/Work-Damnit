@@ -743,7 +743,10 @@ namespace Infiniminer
             {
                 return "8: Rotate Left 9: Rotate Right";
             }
-
+            else if (blockType == BlockType.Pump)
+            {
+                return "8: On/Off 9: Change direction";
+            }
             return "";
         }
         public BlockType Interact()
@@ -757,7 +760,17 @@ namespace Infiniminer
             BlockType blockType = blockEngine.BlockAtPoint(hitPoint);
             return blockType;
         }
+        public bool PlayerInteract(int button)
+        {
+            Vector3 hitPoint = Vector3.Zero;
+            Vector3 buildPoint = Vector3.Zero;
+            if (!blockEngine.RayCollision(playerPosition, playerCamera.GetLookVector(), 2.5f, 25, ref hitPoint, ref buildPoint))
+                return false;
 
+            //press button on server
+            SendPlayerInteract(button, (uint)hitPoint.X, (uint)hitPoint.Y, (uint)hitPoint.Z);
+            return true;
+        }
         public bool AtGenerator()
         {
             // Figure out what we're looking at.
@@ -865,6 +878,20 @@ namespace Infiniminer
                 msgBuffer.Write((byte)InfiniminerMessage.PlayerHurt);
                 msgBuffer.Write(playerHealth);
                 netClient.SendMessage(msgBuffer, NetChannel.ReliableInOrder1);
+        }
+        public void SendPlayerInteract(int button, uint x, uint y, uint z)
+        {
+            if (netClient.Status != NetConnectionStatus.Connected)
+                return;
+
+            NetBuffer msgBuffer = netClient.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.PlayerInteract);
+            msgBuffer.Write(playerPosition);//also sends player locational data for range check
+            msgBuffer.Write(button);
+            msgBuffer.Write(x);
+            msgBuffer.Write(y);
+            msgBuffer.Write(z);
+            netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
     }
 }
