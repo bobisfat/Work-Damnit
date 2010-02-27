@@ -2223,17 +2223,20 @@ namespace Infiniminer
                                     }
                                     for (int c = -1; c < 2; c++)
                                     {
-                                        if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
+                                        if(i + a < MAPSIZE && j + b < MAPSIZE && k + c < MAPSIZE && i + a > 0 && j + b > 0 && k + c > 0)//check pump bounds
                                         {
-                                            pumpheld = BlockType.Water;
-                                            SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                                            flowSleep[i + a, j + b, k + c] = true;
-                                        }
-                                        if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Lava)
-                                        {
-                                            pumpheld = BlockType.Lava;
-                                            SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                                            flowSleep[i + a, j + b, k + c] = true;
+                                            if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
+                                            {
+                                                pumpheld = BlockType.Water;
+                                                SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
+                                                flowSleep[i + a, j + b, k + c] = true;
+                                            }
+                                            if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Lava)
+                                            {
+                                                pumpheld = BlockType.Lava;
+                                                SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
+                                                flowSleep[i + a, j + b, k + c] = true;
+                                            }
                                         }
                                     }
                                 }
@@ -2321,7 +2324,7 @@ namespace Infiniminer
                                 }
                             }
                             BlockType typeBelow = (j == 0) ? BlockType.Water : blockList[i, j - 1, k];
-                            if (typeBelow == BlockType.None)
+                            if (typeBelow == BlockType.Pipe)//none
                             {
                                 if (j > 0)
                                 {
@@ -2332,9 +2335,9 @@ namespace Infiniminer
                                     SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
                                 }
                             }
-                            else if (typeBelow == BlockType.Water)
+                            else if (typeBelow == BlockType.Water || typeBelow == BlockType.None)
                             {
-                                ushort maxradius = 1;
+                                ushort maxradius = 0;//1
            
                                 while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
                                 {
