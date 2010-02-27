@@ -420,8 +420,8 @@ namespace Infiniminer
                     RenderRadarBlip(spriteBatch, bPair.Key, Color.White, false, bPair.Value.ID);
             RenderRadarBlip(spriteBatch, new Vector3(100000, 0, 32), Color.White, false, "NORTH");
 
-            foreach (KeyValuePair<string, Item> bPair in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
-                    RenderRadarBlip(spriteBatch, bPair.Value.Position, Color.Magenta, false, bPair.Value.ID);
+           // foreach (KeyValuePair<string, Item> bPair in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
+            //        RenderRadarBlip(spriteBatch, bPair.Value.Position, Color.Magenta, false, bPair.Value.ID);
 
             spriteBatch.Draw(texRadarForeground, new Vector2(10, 30), Color.White);
 
