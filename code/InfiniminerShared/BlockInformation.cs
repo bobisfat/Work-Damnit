@@ -169,7 +169,7 @@ namespace Infiniminer
                 case BlockType.Rock:
                     return BlockTexture.Rock;
                 case BlockType.Spring:
-                    return BlockTexture.Rock;
+                    return BlockTexture.Spring;
                 case BlockType.Ore:
                     return BlockTexture.Ore;
                 case BlockType.Gold:
