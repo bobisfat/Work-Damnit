@@ -135,7 +135,7 @@ namespace Infiniminer.States
                     if (_P.blockEngine.BlockAtPoint(headPosition) == BlockType.Water)
                     {
 
-                        if (_P.playerHoldBreath > 10)
+                        if (_P.playerHoldBreath > 9)
                         {
                             _P.screenEffect = ScreenEffect.Water;
                             _P.screenEffectCounter = 0.5;
@@ -166,12 +166,12 @@ namespace Infiniminer.States
                     if (_P.playerHoldBreath <= 10)
                     {
                         _P.screenEffect = ScreenEffect.Drown;
+                        _P.screenEffectCounter = 1.0;
                         if (((int)_P.playerHealth - ((9 - _P.playerHoldBreath) * 10)) > 0)
                         {
                             _P.playerHealth -= (uint)(9 - _P.playerHoldBreath) * (_P.playerHealthMax / 10);
                             _P.SendPlayerHurt();
                             _P.lastBreath = DateTime.Now;
-                            _P.screenEffectCounter = 0.5;
                         }
                         else
                         {

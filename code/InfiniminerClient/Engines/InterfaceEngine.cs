@@ -464,9 +464,9 @@ namespace Infiniminer
             }
             if (_P.screenEffect == ScreenEffect.Drown)
             {
-                Color drawColor = new Color(0.25f, 0, 1.0f, 0.5f +(float)_P.screenEffectCounter*0.25f);
+                Color drawColor = new Color(0.5f, 0, 0.8f, 0.25f + (float)_P.screenEffectCounter*0.2f);
                 spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
-                if (_P.screenEffectCounter > 0.8)
+                if (_P.screenEffectCounter > 2)
                 {
                     _P.screenEffect = ScreenEffect.Water;
                     _P.screenEffectCounter = 1;
