@@ -1469,6 +1469,7 @@ namespace Infiniminer
             
             blockList[x, y, z] = blockType;
             blockCreatorTeam[x, y, z] = team;
+            flowSleep[x, y, z] = false;
 
             // x, y, z, type, all bytes
             NetBuffer msgBuffer = netServer.CreateBuffer();
@@ -1506,12 +1507,13 @@ namespace Infiniminer
                     {
                         flowSleep[i, j, k] = false;
                         blockList[i, (ushort)(MAPSIZE - 1 - k), j] = worldData[i, j, k];
-                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 0] = 0;//pipe src x
-                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 1] = 0;//pipe src y
-                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 2] = 0;//pipe dst x
-                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 3] = 0;//pipe dst y
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 0] = 0;//content data for blocks, such as pumps
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 1] = 0;
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 2] = 0;
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 3] = 0;
                         blockCreatorTeam[i, j, k] = PlayerTeam.None;
                     }
+
             for (int i = 0; i < MAPSIZE * 2; i++)
             {
                 DoStuff();
@@ -2295,7 +2297,7 @@ namespace Infiniminer
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k]|| blockList[i, j, k] == BlockType.Lava && !flowSleep[i, j, k])//should be liquid check, not comparing each block
+                        if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k] || blockList[i, j, k] == BlockType.Lava && !flowSleep[i, j, k])//should be liquid check, not comparing each block
                         {//dowaterstuff //dolavastuff
                             BlockType liquid = blockList[i, j, k];
                             BlockType opposing = BlockType.None;
@@ -2339,7 +2341,7 @@ namespace Infiniminer
                                 }
                             }
 
-                            //check for conflicting lava
+                            //check for conflicting lava//may need to check bounds
                             if (opposing != BlockType.None)
                             {
                                 BlockType transform = BlockType.Rock;
