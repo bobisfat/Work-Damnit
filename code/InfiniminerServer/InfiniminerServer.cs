@@ -21,6 +21,7 @@ namespace Infiniminer
         int lavaBlockCount = 0;
         int waterBlockCount = 0;
         uint oreFactor = 10;
+        int frameCount = 100;
         uint prevMaxPlayers = 16;
         bool includeLava = true;
         bool includeWater = true;
@@ -559,6 +560,7 @@ namespace Infiniminer
                         if (sender == null)
                         {
                             ConsoleWrite("SERVER CONSOLE COMMANDS:");
+                            ConsoleWrite(" fps");
                             ConsoleWrite(" announce");
                             ConsoleWrite(" players");
                             ConsoleWrite(" kick <ip>");
@@ -602,6 +604,11 @@ namespace Infiniminer
                         }else{
                             SendServerMessageToPlayer(sender.Handle + ", the " + args[0].ToLower() + " command is only for use in the server console.", sender.NetConn);
                         }
+                    }
+                    break;
+                case "fps":
+                    {
+                        ConsoleWrite("Server FPS:"+frameCount );
                     }
                     break;
                 case "admins":
@@ -1451,9 +1458,7 @@ namespace Infiniminer
                     }
             for (int i = 0; i < MAPSIZE * 2; i++)
             {
-                DoWaterStuff();
-                DoLavaStuff();
-                DoPumpStuff();
+                DoStuff();
             }
                 //return lavaBlockCount;
                 return waterBlockCount;
@@ -1635,11 +1640,27 @@ namespace Infiniminer
                 PublicServerListUpdate(true);
 
             lastMapBackup = DateTime.Now;
+           
+            DateTime lastFPScheck = DateTime.Now;
+            double frameRate = 0;
 
             // Main server loop!
             ConsoleWrite("SERVER READY");
             while (keepRunning)
             {
+                frameCount = frameCount + 1;
+                if (lastFPScheck <= DateTime.Now - TimeSpan.FromMilliseconds(1000))
+                {
+                    lastFPScheck = DateTime.Now;
+                    frameRate = frameCount;// / gameTime.ElapsedTotalTime.TotalSeconds;
+                    
+                    if (sleeping == false && frameCount < 20)
+                    {
+                        ConsoleWrite("Heavy load: " + frameCount + " FPS");
+                    }
+                    frameCount = 0;
+                }
+                
                 // Process any messages that are here.
                 while (netServer.ReadMessage(msgBuffer, out msgType, out msgSender))
                 {
@@ -2039,10 +2060,7 @@ namespace Infiniminer
                     //    secondflow = 0;
                     //}
 
-                    DoLavaStuff();
-                    DoWaterStuff();
-                    DoPumpStuff();
-                    DoSpringStuff();
+                    DoStuff();
 
                     lastFlowCalc = DateTime.Now;
 
@@ -2099,11 +2117,11 @@ namespace Infiniminer
 
                 // Pass control over to waiting threads.
                 if(sleeping == true) {
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                 }
                 else
                 {
-                    Thread.Sleep(1);
+                  //  Thread.Sleep(0);
                 }
             }
 
@@ -2129,123 +2147,155 @@ namespace Infiniminer
                 winningTeam = PlayerTeam.Red;
         }
 
-        public void DoLavaStuff()
+        public void EraseVacuum()
         {
-            bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
-
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        flowSleep[i, j, k] = false;
-
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Lava && !flowSleep[i, j, k])
+                        if (blockList[i, j, k] == BlockType.Vacuum)
                         {
-                            // RULES FOR LAVA EXPANSION:
-                            // if the block below is lava, do nothing
-                            // if the block below is empty space, add lava there
-                            // if the block below is something solid (or insane lava is on), add lava to the sides
-                            // if shock block spreading is enabled and there is a schock block in any direction...
-                            // if road block above and roadabsorbs is enabled then contract
-  
-                            if (varGetB("sspreads"))
-                            {
-                                BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
-                                if (i > 0 && blockList[i - 1, j, k] == BlockType.Shock)
-                                {
-                                    SetBlock((ushort)(i - 1), j, k, BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i - 1, j, k] = true;
-                                }
-                                if (k > 0 && blockList[i, j, k - 1] == BlockType.Shock)
-                                {
-                                    SetBlock(i, j, (ushort)(k - 1), BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i, j, k - 1] = true;
-                                }
-                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.Shock)
-                                {
-                                    SetBlock((ushort)(i + 1), j, k, BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i + 1, j, k] = true;
-                                }
-                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.Shock)
-                                {
-                                    SetBlock(i, j, (ushort)(k + 1), BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i, j, k + 1] = true;
-                                }
-                                if (typeAbove == BlockType.Shock) //Spread up
-                                {
-                                    SetBlock(i, (ushort)(j + 1), k, BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i, j + 1, k] = true;
-                                }
-                                //Don't spread down...
-                            }
-                            if (varGetB("roadabsorbs"))
-                            {
-                                BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
-                                if (typeAbove == BlockType.Road)
-                                {
-                                    SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
-                                    flowSleep[i, j, k] = true;
-                                }
-                            }
-                            BlockType typeBelow = (j == 0) ? BlockType.Lava : blockList[i, j - 1, k];
-                            if (typeBelow == BlockType.None)
-                            {
-                                if (j > 0)
-                                {
-                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i, j - 1, k] = true;
-                                }
-                            }
-                            else if (typeBelow != BlockType.Lava || varGetB("insanelava"))
-                            {
-                                if (i > 0 && blockList[i-1, j, k] == BlockType.None)
-                                {
-                                    SetBlock((ushort)(i - 1), j, k, BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i - 1, j, k] = true;
-                                }
-                                if (k > 0 && blockList[i, j, k-1] == BlockType.None)
-                                {
-                                    SetBlock(i, j, (ushort)(k - 1), BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i, j, k - 1] = true;
-                                }
-                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
-                                {
-                                    SetBlock((ushort)(i + 1), j, k, BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i + 1, j, k] = true;
-                                }
-                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
-                                {
-                                    SetBlock(i, j, (ushort)(k + 1), BlockType.Lava, PlayerTeam.None);
-                                    flowSleep[i, j, k + 1] = true;
-                                }
-                            }
+                            blockList[i, j, k] = BlockType.None;
                         }
         }
 
-        public void DoSpringStuff()
+        public void DoStuff()
         {
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Spring)
-                        {
-                            if (blockList[i, j - 1, k] == BlockType.None)
-                            {
-                                SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
-                            }
-                        }
-        }
+           // bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
 
-        public void DoPumpStuff()
-        {
-        
+            //for (ushort i = 0; i < MAPSIZE; i++)
+            //    for (ushort j = 0; j < MAPSIZE; j++)
+            //        for (ushort k = 0; k < MAPSIZE; k++)
+            //            flowSleep[i, j, k] = false;
+
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Pump && blockListContent[i,j,k,0] > 0)//if blockListContent0 = 0 then pump off
-                        {
+                        if (blockList[i, j, k] == BlockType.Water || blockList[i, j, k] == BlockType.Lava)// && !flowSleep[i, j, k])//should be liquid check, not comparing each block
+                        {//dowaterstuff //dolavastuff
+                            BlockType liquid = blockList[i, j, k];
+                            BlockType opposing = BlockType.None;
+
+                            BlockType typeBelow = (j <= 0) ? BlockType.Vacuum : blockList[i, j - 1, k];//if j <= 0 then use block vacuum
+
+                            if (blockList[i, j, k] == BlockType.Water)
+                            {
+                                opposing = BlockType.Lava;
+                            }
+                            else
+                            {
+                                //lava stuff
+                                if (varGetB("roadabsorbs"))
+                                {
+                                    BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
+                                    if (typeAbove == BlockType.Road)
+                                    {
+                                        SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
+                                    }
+                                }
+
+                                if (typeBelow != BlockType.Lava && varGetB("insanelava"))
+                                {
+                                    if (i > 0 && blockList[i-1, j, k] == BlockType.None)
+                                    {
+                                        SetBlock((ushort)(i - 1), j, k, BlockType.Lava, PlayerTeam.None);
+                                    }
+                                    if (k > 0 && blockList[i, j, k-1] == BlockType.None)
+                                    {
+                                        SetBlock(i, j, (ushort)(k - 1), BlockType.Lava, PlayerTeam.None);
+                                    }
+                                    if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
+                                    {
+                                        SetBlock((ushort)(i + 1), j, k, BlockType.Lava, PlayerTeam.None);
+                                    }
+                                    if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
+                                    {
+                                        SetBlock(i, j, (ushort)(k + 1), BlockType.Lava, PlayerTeam.None);
+                                    }
+                                }
+                            }
+
+                            //check for conflicting lava
+                            if (opposing != BlockType.None)
+                            {
+                                BlockType transform = BlockType.Rock;
+
+                                if (i > 0 && blockList[i - 1, j, k] == opposing)
+                                {
+                                    SetBlock((ushort)(i - 1), j, k, transform, PlayerTeam.None);
+                                }
+                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == opposing)
+                                {
+                                    SetBlock((ushort)(i + 1), j, k, transform, PlayerTeam.None);
+                                }
+                                if (k > 0 && blockList[i, j - 1, k] == opposing)
+                                {
+                                    SetBlock(i, (ushort)(j - 1), k, transform, PlayerTeam.None);
+                                }
+                                if (k > 0 && blockList[i, (ushort)(j + 1), k] == opposing)
+                                {
+                                    SetBlock(i, (ushort)(j + 1), k, transform, PlayerTeam.None);
+                                }
+                                if (k > 0 && blockList[i, j, k - 1] == opposing)
+                                {
+                                    SetBlock(i, j, (ushort)(k - 1), transform, PlayerTeam.None);
+                                }
+                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == opposing)
+                                {
+                                    SetBlock(i, j, (ushort)(k + 1), transform, PlayerTeam.None);
+                                }
+                            }
+
+                            if (typeBelow != BlockType.None && typeBelow != liquid)//none//trying radius fill
+                            {
+                                for (ushort a = (ushort)(i - 1); a < i + 2; a++)
+                                {
+                                    for (ushort b = (ushort)(k - 1); b < k + 2; b++)
+                                    {
+                                        if (blockList[i, j, k] != BlockType.None)//has our water block moved on us?
+                                        {
+                                            //water slides if standing on an edge
+                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j - 1 > 0)
+                                                if (blockList[a, j - 1, b] == BlockType.None)
+                                                {
+                                                    SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
+                                                    SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
+                                                }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (typeBelow == liquid || typeBelow == BlockType.None)
+                            {
+                                ushort maxradius = 1;//1
+
+                                while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
+                                {
+                                    for (ushort a = (ushort)(-maxradius + i); a <= maxradius + i; a++)
+                                    {
+                                        for (ushort b = (ushort)(-maxradius + k); b <= maxradius + k; b++)
+                                        {
+                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j - 1 > 0)
+                                                if (blockList[a, j - 1, b] == BlockType.None)
+                                                {
+                                                    if (blockTrace(a, (ushort)(j - 1), b, i, (ushort)(j - 1), k, liquid))//needs to be a pathfind
+                                                    {
+                                                        SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
+                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
+                                                        //Disturb(i, j, k, 4);//was supposed to wake up water around breaks
+                                                        maxradius = 26;
+                                                        a = 65;
+                                                        b = 65;
+                                                    }
+                                                }
+                                        }
+
+                                    }
+                                    maxradius += 1;//prevent water spreading too large, this is mainly to stop loop size getting too large
+                                }
+                            }    
+                        }
+                        else if (blockList[i, j, k] == BlockType.Pump && blockListContent[i, j, k, 0] > 0)// content0 = determines if on
+                        {//dopumpstuff
                             BlockType pumpheld = BlockType.None;
 
                             if (i + blockListContent[i, j, k, 2] < MAPSIZE && j + blockListContent[i, j, k, 3] < MAPSIZE && k + blockListContent[i, j, k, 4] < MAPSIZE && i + blockListContent[i, j, k, 2] > 0 && j + blockListContent[i, j, k, 3] > 0 && k + blockListContent[i, j, k, 4] > 0)
@@ -2269,11 +2319,11 @@ namespace Infiniminer
                                         {//check bounds
                                             SetBlock((ushort)(i + blockListContent[i, j, k, 5]), (ushort)(j + blockListContent[i, j, k, 6]), (ushort)(k + blockListContent[i, j, k, 7]), pumpheld, PlayerTeam.None);//places its contents in desired direction
                                         }
-                                        else if(blockList[i + blockListContent[i, j, k, 5], j + blockListContent[i, j, k, 6], k + blockListContent[i, j, k, 7]] == pumpheld)//exit must be clear or same substance
+                                        else if (blockList[i + blockListContent[i, j, k, 5], j + blockListContent[i, j, k, 6], k + blockListContent[i, j, k, 7]] == pumpheld)//exit must be clear or same substance
                                         {
                                             for (ushort m = 2; m < 10; m++)//multiply exit area to fake upward/sideward motion
                                             {
-                                                if (i + blockListContent[i, j, k, 5]*m < MAPSIZE && j + blockListContent[i, j, k, 6]*m < MAPSIZE && k + blockListContent[i, j, k, 7]*m < MAPSIZE && i + blockListContent[i, j, k, 5]*m > 0 && j + blockListContent[i, j, k, 6]*m > 0 && k + blockListContent[i, j, k, 7]*m > 0)
+                                                if (i + blockListContent[i, j, k, 5] * m < MAPSIZE && j + blockListContent[i, j, k, 6] * m < MAPSIZE && k + blockListContent[i, j, k, 7] * m < MAPSIZE && i + blockListContent[i, j, k, 5] * m > 0 && j + blockListContent[i, j, k, 6] * m > 0 && k + blockListContent[i, j, k, 7] * m > 0)
                                                 {
                                                     if (blockList[i + blockListContent[i, j, k, 5] * m, j + blockListContent[i, j, k, 6] * m, k + blockListContent[i, j, k, 7] * m] == BlockType.None)
                                                     {
@@ -2285,197 +2335,18 @@ namespace Infiniminer
                                                         break;//pipe has run aground .. and dont refund the intake
                                                     }
                                                 }
-                                               
+
                                             }
                                         }
                                     }
                                 }
                             }
-                            //for (int a = -1; a < 2; a++)
-                            //{
-                            //    for (int b = -1; b < 2; b++)
-                            //    {
-                                    
-                            //        if (b == -1 && a == 0 && b == 0)//this is below the pump
-                            //        {
-                            //            continue;//go to next pump attempt
-                            //        }
-                            //        for (int c = -1; c < 2; c++)
-                            //        {
-                            //            if(i + a < MAPSIZE && j + b < MAPSIZE && k + c < MAPSIZE && i + a > 0 && j + b > 0 && k + c > 0)//check pump bounds
-                            //            {
-                            //                if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
-                            //                {
-                            //                    pumpheld = BlockType.Water;
-                            //                    SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                            //                    //flowSleep[i + a, j + b, k + c] = true;
-                            //                }
-                            //                if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Lava)
-                            //                {
-                            //                    pumpheld = BlockType.Lava;
-                            //                    SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                            //                    //flowSleep[i + a, j + b, k + c] = true;
-                            //                }
-                            //            }
-                            //        }
-                            //    }
-                            //}
-                            //if (pumpheld != BlockType.None)
-                            //{
-                            //    if (j > 0 && blockList[i, j-1, k] == BlockType.None) {
-                            //    SetBlock(i, (ushort)(j-1), k, pumpheld, PlayerTeam.None);//places its contents downward
-                            //    }
-                            //}
-                         }
-        }
-
-        public void EraseVacuum()
-        {
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Vacuum)
-                        {
-                            blockList[i, j, k] = BlockType.None;
                         }
-        }
-
-        public void DoWaterStuff()
-        {
-           // bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
-
-            //for (ushort i = 0; i < MAPSIZE; i++)
-            //    for (ushort j = 0; j < MAPSIZE; j++)
-            //        for (ushort k = 0; k < MAPSIZE; k++)
-            //            flowSleep[i, j, k] = false;
-
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Water)// && !flowSleep[i, j, k])
-                        {
-                            // RULES FOR LAVA EXPANSION:
-                            // if the block below is lava, do nothing
-                            // if the block below is empty space, add lava there
-                            // if the block below is something solid (or insane lava is on), add lava to the sides
-                            // if shock block spreading is enabled and there is a schock block in any direction...
-                            // if road block above and roadabsorbs is enabled then contract
-
-                            //check for conflicting lava
-                            if (i > 0 && blockList[i - 1, j, k] == BlockType.Lava)
+                        else if (blockList[i, j, k] == BlockType.Spring)
+                        {//dospringstuff
+                            if (blockList[i, j - 1, k] == BlockType.None)
                             {
-                                SetBlock((ushort)(i - 1), j, k, BlockType.Rock, PlayerTeam.None);
-                              //  flowSleep[i - 1, j, k] = true;
-                            }
-                            if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.Lava)
-                            {
-                                SetBlock((ushort)(i + 1), j, k, BlockType.Rock, PlayerTeam.None);
-                             //   flowSleep[i + 1, j, k] = true;
-                            }
-                            if (k > 0 && blockList[i, j - 1, k] == BlockType.Lava)
-                            {
-                                SetBlock(i, (ushort)(j - 1), k, BlockType.Rock, PlayerTeam.None);
-                             //   flowSleep[i, (ushort)(j - 1), k] = true;
-                            }
-                            if (k > 0 && blockList[i, (ushort)(j + 1), k] == BlockType.Lava)
-                            {
-                                SetBlock(i, (ushort)(j + 1), k, BlockType.Rock, PlayerTeam.None);
-                              //  flowSleep[i, (ushort)(j + 1), k] = true;
-                            }
-                            if (k > 0 && blockList[i, j, k - 1] == BlockType.Lava)
-                            {
-                                SetBlock(i, j, (ushort)(k - 1), BlockType.Rock, PlayerTeam.None);
-                             //   flowSleep[i, j, k - 1] = true;
-                            }
-                            if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.Lava)
-                            {
-                                SetBlock(i, j, (ushort)(k + 1), BlockType.Rock, PlayerTeam.None);
-                             //   flowSleep[i, j, k + 1] = true;
-                            }
-
-                            if (varGetB("roadabsorbs"))
-                            {
-                                BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
-                                if (typeAbove == BlockType.Road)
-                                {
-                                    SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
-                                 //   flowSleep[i, j, k] = true;
-                                }
-                            }
-                            BlockType typeBelow = (j == 0) ? BlockType.Water : blockList[i, j - 1, k];
-                            if (typeBelow == BlockType.Pipe)//none//trying radius fill
-                            {
-                                if (j > 0)
-                                {
-                                   // SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
-                                    //flowSleep[i, j - 1, k] = true;
-
-                                    //beta waterfalls
-                                    //SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
-                                }
-                            }
-                            else if (typeBelow == BlockType.Water || typeBelow == BlockType.None)
-                            {
-                                ushort maxradius = 1;//1
-           
-                                while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
-                                {
-                                    for (ushort a = (ushort)(-maxradius + i); a < maxradius + i; a++)
-                                    {
-                                        for (ushort b = (ushort)(-maxradius + k); b < maxradius + k; b++)
-                                        {
-                                           
-                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j-1 > 0)
-                                                if (blockList[a, j-1, b] == BlockType.None)
-                                                {
-                                                    if(blockTrace(a,(ushort)(j-1),b,i,(ushort)(j-1),k,BlockType.Water))
-                                                    {
-                                                        SetBlock(a, (ushort)(j-1), b, BlockType.Water, PlayerTeam.None);
-                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
-                                                        //Disturb(i, j, k, 4);//was supposed to wake up water around breaks
-                                                        maxradius = 26;
-                                                        a = 65;
-                                                        b = 65;
-                                                    }
-                                                }
-                                        }
-
-                                    }
-                                  //  return;
-                                    maxradius += 1;
-                                }
-                               
-                                   // ConsoleWrite("water too large");
-                                   // SetBlock(i, j, k, BlockType.Vacuum, PlayerTeam.None);
-                                  //  return;
-                              
-                                //bool oneblock = true;
-                                //if (i > 0 && blockList[i - 1, j, k] == BlockType.None && oneblock)
-                                //{
-                                //    oneblock = false;
-                                //    SetBlock((ushort)(i - 1), j, k, BlockType.Water, PlayerTeam.None);
-                                //    flowSleep[i - 1, j, k] = true;
-                                //}
-                                //if (k > 0 && blockList[i, j, k - 1] == BlockType.None && oneblock)
-                                //{
-                                //    oneblock = false;
-                                //    SetBlock(i, j, (ushort)(k - 1), BlockType.Water, PlayerTeam.None);
-                                //    flowSleep[i, j, k - 1] = true;
-                                //}
-                                //if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None && oneblock)
-                                //{
-                                //    oneblock = false;
-                                //    SetBlock((ushort)(i + 1), j, k, BlockType.Water, PlayerTeam.None);
-                                //    flowSleep[i + 1, j, k] = true;
-                                //}
-                                //if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None && oneblock)
-                                //{
-                                //    oneblock = false;
-                                //    SetBlock(i, j, (ushort)(k + 1), BlockType.Water, PlayerTeam.None);
-                                //    flowSleep[i, j, k + 1] = true;
-                                //}
-
-                                //SetBlock(i, j, k, BlockType.Vacuum, PlayerTeam.None);
+                                SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
                             }
                         }
         }
