@@ -620,6 +620,28 @@ namespace Infiniminer
                         ConsoleWrite("Physics state is now: " + physicsEnabled);
                     }
                     break;
+                case "liquid":
+                    {
+                        lavaBlockCount = 0;
+                        waterBlockCount = 0;
+
+                        for (ushort i = 0; i < MAPSIZE; i++)
+                            for (ushort j = 0; j < MAPSIZE; j++)
+                                for (ushort k = 0; k < MAPSIZE; k++)
+                                {
+                                    if (blockList[i,j,k] == BlockType.Lava)
+                                    {
+                                        lavaBlockCount += 1;
+                                    }
+                                    else if (blockList[i, j, k] == BlockType.Water)
+                                    {
+                                        waterBlockCount += 1;
+                                    }
+                                }
+
+                        ConsoleWrite(waterBlockCount + " water blocks, " + lavaBlockCount + " lava blocks.");
+                    }
+                    break;
                 case "flowsleep":
                     {
                         uint sleepcount = 0;
@@ -1465,17 +1487,6 @@ namespace Infiniminer
             foreach (NetConnection netConn in playerList.Keys)
                 if (netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableUnordered);
-
-            if (blockType == BlockType.Lava)
-            {
-                lavaBlockCount += 1;
-                flowSleep[x, y, z] = false;
-            }
-            if (blockType == BlockType.Water)
-            {
-                waterBlockCount += 1;
-                flowSleep[x, y, z] = false;
-            }
             
             //ConsoleWrite("BLOCKSET: " + x + " " + y + " " + z + " " + blockType.ToString());
         }
@@ -1507,7 +1518,7 @@ namespace Infiniminer
             }
 
             physicsEnabled = true;
-            return waterBlockCount;
+            return 1;
         }
 
         public double Get3DDistance(int x1, int y1, int z1, int x2, int y2, int z2)
@@ -1662,13 +1673,50 @@ namespace Infiniminer
                 blockList = new BlockType[MAPSIZE, MAPSIZE, MAPSIZE];
                 blockCreatorTeam = new PlayerTeam[MAPSIZE, MAPSIZE, MAPSIZE];
                 LoadLevel(levelToLoad);
+
+                lavaBlockCount = 0;
+                waterBlockCount = 0;
+
+                for (ushort i = 0; i < MAPSIZE; i++)
+                    for (ushort j = 0; j < MAPSIZE; j++)
+                        for (ushort k = 0; k < MAPSIZE; k++)
+                        {
+                            if (blockList[i, j, k] == BlockType.Lava)
+                            {
+                                lavaBlockCount += 1;
+                            }
+                            else if (blockList[i, j, k] == BlockType.Water)
+                            {
+                                waterBlockCount += 1;
+                            }
+                        }
+
+                ConsoleWrite(waterBlockCount + " water blocks, " + lavaBlockCount + " lava blocks."); 
             }
             else
             {
                 // Calculate initial lava flows.
-                ConsoleWrite("CALCULATING INITIAL WATER FLOWS");
-                //ConsoleWrite("TOTAL LAVA BLOCKS = " + newMap());
-                ConsoleWrite("TOTAL WATER BLOCKS = " + newMap());
+                ConsoleWrite("CALCULATING INITIAL LIQUID BLOCKS");
+                newMap();
+
+                lavaBlockCount = 0;
+                waterBlockCount = 0;
+
+                for (ushort i = 0; i < MAPSIZE; i++)
+                    for (ushort j = 0; j < MAPSIZE; j++)
+                        for (ushort k = 0; k < MAPSIZE; k++)
+                        {
+                            if (blockList[i, j, k] == BlockType.Lava)
+                            {
+                                lavaBlockCount += 1;
+                            }
+                            else if (blockList[i, j, k] == BlockType.Water)
+                            {
+                                waterBlockCount += 1;
+                            }
+                        }
+
+                ConsoleWrite(waterBlockCount + " water blocks, " + lavaBlockCount + " lava blocks.");           
             }
             
 
@@ -2358,7 +2406,7 @@ namespace Infiniminer
                                                     {
                                                         SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
                                                         SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
-                                                        maxradius = 26;
+                                                        maxradius = 30;
                                                         a = 65;
                                                         b = 65;
                                                     }
@@ -2367,6 +2415,11 @@ namespace Infiniminer
 
                                     }
                                     maxradius += 1;//prevent water spreading too large, this is mainly to stop loop size getting too large
+                                }
+                                if (maxradius != 30)//block could not find a new home
+                                {
+                                    flowSleep[i, j, k] = true;
+                                    continue;//skip the surround check
                                 }
                             } 
                             //extra checks for sleep
