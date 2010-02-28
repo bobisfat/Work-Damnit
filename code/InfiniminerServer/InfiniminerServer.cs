@@ -119,8 +119,7 @@ namespace Infiniminer
             varBind("stnt", "Spherical TNT explosions", true, true);
             varBind("sspreads", "Lava spreading via shock blocks", true, false);
             varBind("roadabsorbs", "Letting road blocks above lava absorb it", true, false);
-            varBind("insanelava", "Insane lava spreading, so as to fill any hole", false, false);
-            varBind("insanewater", "Insane water spreading, so as to fill any hole", false, false);
+            varBind("insane", "Insane liquid spreading, so as to fill any hole", false, false);
             varBind("minelava", "Lava pickaxe mining", true, false);
             //***New***
             varBind("public", "Server publicity", true, false);
@@ -513,10 +512,9 @@ namespace Infiniminer
                 extraInfo += ", !water";
             if (!varGetB("tnt"))
                 extraInfo += ", !tnt";
-            if (varGetB("insanelava") || varGetB("sspreads") || varGetB("stnt"))
-                extraInfo += ", MetMod";
-            if (varGetB("insanewater") || varGetB("sspreads") || varGetB("stnt"))
-                extraInfo += ", MetMod";
+            if (varGetB("insane") || varGetB("sspreads") || varGetB("stnt"))
+                extraInfo += ", insane";
+
 /*            if (varGetB("insanelava"))//insaneLava)
                 extraInfo += ", ~lava";
             if (varGetB("sspreads"))
@@ -563,6 +561,7 @@ namespace Infiniminer
                         {
                             ConsoleWrite("SERVER CONSOLE COMMANDS:");
                             ConsoleWrite(" fps");
+                            ConsoleWrite(" physics");
                             ConsoleWrite(" announce");
                             ConsoleWrite(" players");
                             ConsoleWrite(" kick <ip>");
@@ -611,6 +610,12 @@ namespace Infiniminer
                 case "fps":
                     {
                         ConsoleWrite("Server FPS:"+frameCount );
+                    }
+                    break;
+                case "physics":
+                    {
+                        physicsEnabled = !physicsEnabled;
+                        ConsoleWrite("Physics state is now: " + physicsEnabled);
                     }
                     break;
                 case "admins":
@@ -1577,12 +1582,8 @@ namespace Infiniminer
                 varSet("tnt", !bool.Parse(dataFile.Data["notnt"]), true);
             if (dataFile.Data.ContainsKey("sphericaltnt"))
                 varSet("stnt", bool.Parse(dataFile.Data["sphericaltnt"]), true);
-            if (dataFile.Data.ContainsKey("insanelava"))
-                varSet("insanelava", bool.Parse(dataFile.Data["insanelava"]), true);
-            if (dataFile.Data.ContainsKey("insanewater"))
-                varSet("insanewater", bool.Parse(dataFile.Data["insanewater"]), true);
-            if (dataFile.Data.ContainsKey("shockspreadslava"))
-                varSet("sspreads", bool.Parse(dataFile.Data["shockspreadslava"]), true);
+            if (dataFile.Data.ContainsKey("insane"))
+                varSet("insane", bool.Parse(dataFile.Data["insane"]), true);
             if (dataFile.Data.ContainsKey("roadabsorbs"))
                 varSet("roadabsorbs", bool.Parse(dataFile.Data["roadabsorbs"]), true);
             if (dataFile.Data.ContainsKey("minelava"))
@@ -2244,26 +2245,26 @@ namespace Infiniminer
                                     {
                                         SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
                                     }
-                                }
+                                }                           
+                            }
 
-                                if (typeBelow != BlockType.Lava && varGetB("insanelava"))
+                            if (typeBelow != liquid && varGetB("insane"))
+                            {
+                                if (i > 0 && blockList[i - 1, j, k] == BlockType.None)
                                 {
-                                    if (i > 0 && blockList[i-1, j, k] == BlockType.None)
-                                    {
-                                        SetBlock((ushort)(i - 1), j, k, BlockType.Lava, PlayerTeam.None);
-                                    }
-                                    if (k > 0 && blockList[i, j, k-1] == BlockType.None)
-                                    {
-                                        SetBlock(i, j, (ushort)(k - 1), BlockType.Lava, PlayerTeam.None);
-                                    }
-                                    if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
-                                    {
-                                        SetBlock((ushort)(i + 1), j, k, BlockType.Lava, PlayerTeam.None);
-                                    }
-                                    if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
-                                    {
-                                        SetBlock(i, j, (ushort)(k + 1), BlockType.Lava, PlayerTeam.None);
-                                    }
+                                    SetBlock((ushort)(i - 1), j, k, liquid, PlayerTeam.None);
+                                }
+                                if (k > 0 && blockList[i, j, k - 1] == BlockType.None)
+                                {
+                                    SetBlock(i, j, (ushort)(k - 1), liquid, PlayerTeam.None);
+                                }
+                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
+                                {
+                                    SetBlock((ushort)(i + 1), j, k, liquid, PlayerTeam.None);
+                                }
+                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
+                                {
+                                    SetBlock(i, j, (ushort)(k + 1), liquid, PlayerTeam.None);
                                 }
                             }
 

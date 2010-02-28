@@ -23,12 +23,8 @@ notnt = false
 # If true, tnt explosions will be spherical - currently not implemented
 sphericaltnt = true
 
-# If true, lava will be aggressive - it won't need solid ground to spread!
-insanelava = false
-insanewater = false
-
-# If true, lava will spread to shock blocks to the side and above - allows for "piping" lava to new areas or flooding places - Fish's idea
-shockspreadslava = true
+# If true, liquids will be aggressive - it won't need solid ground to spread! loading time increases dramatically.
+insane = false
 
 # If true, road blocks above lava will absorb the lava - Fish's idea
 roadabsorbs = true
