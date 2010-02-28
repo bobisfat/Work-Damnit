@@ -25,6 +25,8 @@ namespace Infiniminer
         uint prevMaxPlayers = 16;
         bool includeLava = true;
         bool includeWater = true;
+        bool physicsEnabled = false;
+
         string levelToLoad = "";
         string greeter = "";
         List<NetConnection> toGreet = new List<NetConnection>();
@@ -769,7 +771,10 @@ namespace Infiniminer
                         {
                             if (sender!=null)
                                 ConsoleWrite(sender.Handle + " is loading a map.");
+                            physicsEnabled = false;
+                            Thread.Sleep(2);
                             LoadLevel(args[1]);
+                            physicsEnabled = true;
                             /*if (LoadLevel(args[1]))
                                 Console.WriteLine("Loaded level " + args[1]);
                             else
@@ -777,7 +782,10 @@ namespace Infiniminer
                         }
                         else if (levelToLoad != "")
                         {
+                            physicsEnabled = false;
+                            Thread.Sleep(2);
                             LoadLevel(levelToLoad);
+                            physicsEnabled = true;
                         }
                     }
                     break;
@@ -1440,6 +1448,8 @@ namespace Infiniminer
 
         public int newMap()
         {
+            physicsEnabled = false;
+            Thread.Sleep(2);
             // Create our block world, translating the coordinates out of the cave generator (where Z points down)
             BlockType[, ,] worldData = CaveGenerator.GenerateCaveSystem(MAPSIZE, includeLava, oreFactor, includeWater);
             blockList = new BlockType[MAPSIZE, MAPSIZE, MAPSIZE];
@@ -1460,10 +1470,9 @@ namespace Infiniminer
             {
                 DoStuff();
             }
-                //return lavaBlockCount;
-                return waterBlockCount;
 
-
+            physicsEnabled = true;
+            return waterBlockCount;
         }
 
         public double Get3DDistance(int x1, int y1, int z1, int x2, int y2, int z2)
@@ -1648,6 +1657,7 @@ namespace Infiniminer
             ConsoleWrite("SERVER READY");
 
             physics = new Thread(new ThreadStart(this.DoPhysics));
+            physics.Priority = ThreadPriority.Normal;
             physics.Start();
 
             if (!physics.IsAlive)
@@ -1660,8 +1670,8 @@ namespace Infiniminer
                 if (!physics.IsAlive)
                 {
                     ConsoleWrite("Physics thread died.");
-                    physics.Abort();
-                    physics.Join();
+                   // physics.Abort();
+                   // physics.Join();
                     //physics.Start();
                 }
 
@@ -1738,7 +1748,11 @@ namespace Infiniminer
 
                                     if (msgSender.Status == NetConnectionStatus.Connected)
                                     {
-                                        sleeping = false;
+                                        if (sleeping == true)
+                                        {
+                                            sleeping = false;
+                                            physicsEnabled = true;
+                                        }
                                         ConsoleWrite("CONNECT: " + playerList[msgSender].Handle + " ( " + playerList[msgSender].IP + " )");
                                         SendCurrentMap(msgSender);
                                         SendPlayerJoined(player);
@@ -1761,6 +1775,7 @@ namespace Infiniminer
                                         if (sleeping == true)
                                         {
                                             ConsoleWrite("HIBERNATING");
+                                            physicsEnabled = false;
                                         }
 
                                         PublicServerListUpdate();
@@ -2178,18 +2193,22 @@ namespace Infiniminer
         public void DoPhysics()
         {
             DateTime lastFlowCalc = DateTime.Now;
-            bool physicsEnabled = true;
-            while (physicsEnabled)
+            
+            while (1==1)
             {
-
-                TimeSpan timeSpan = DateTime.Now - lastFlowCalc;
-                
-                if (timeSpan.TotalMilliseconds > 250)
+                while (physicsEnabled)
                 {
-                    lastFlowCalc = DateTime.Now;
-                    DoStuff();
+                    TimeSpan timeSpan = DateTime.Now - lastFlowCalc;
+
+                    if (timeSpan.TotalMilliseconds > 250)
+                    {
+                        lastFlowCalc = DateTime.Now;
+                        DoStuff();
+
+                    }
+                    Thread.Sleep(2);
                 }
-                Thread.Sleep(2);
+                Thread.Sleep(50);
             }
         }
         public void DoStuff()
