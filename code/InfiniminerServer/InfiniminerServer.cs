@@ -1643,11 +1643,28 @@ namespace Infiniminer
            
             DateTime lastFPScheck = DateTime.Now;
             double frameRate = 0;
-
+            Thread physics;
             // Main server loop!
             ConsoleWrite("SERVER READY");
+
+            physics = new Thread(new ThreadStart(this.DoPhysics));
+            physics.Start();
+
+            if (!physics.IsAlive)
+            {
+                ConsoleWrite("Physics thread is limp.");
+            }
+
             while (keepRunning)
             {
+                if (!physics.IsAlive)
+                {
+                    ConsoleWrite("Physics thread died.");
+                    physics.Abort();
+                    physics.Join();
+                    //physics.Start();
+                }
+
                 frameCount = frameCount + 1;
                 if (lastFPScheck <= DateTime.Now - TimeSpan.FromMilliseconds(1000))
                 {
@@ -2052,6 +2069,8 @@ namespace Infiniminer
                 TimeSpan timeSpan = DateTime.Now - lastFlowCalc;
                 if (timeSpan.TotalMilliseconds > 250)//needs separate timer for each substance
                 {
+                    lastFlowCalc = DateTime.Now;
+
                     //secondflow += 1;
 
                     //if (secondflow > 2)//every 2nd flow, remove the vacuum that prevent re-spread
@@ -2059,10 +2078,6 @@ namespace Infiniminer
                     //    EraseVacuum();
                     //    secondflow = 0;
                     //}
-
-                    DoStuff();
-
-                    lastFlowCalc = DateTime.Now;
 
                     foreach (Player p in playerList.Values)//regeneration
                     {
@@ -2077,7 +2092,10 @@ namespace Infiniminer
                                 SendResourceUpdate(p);
                             }
                     }
-                   
+
+                    //physics = new Thread(new ThreadStart(this.DoStuff)); 
+                    //DoStuff();
+
                 }
 
                 // Handle console keypresses.
@@ -2157,9 +2175,25 @@ namespace Infiniminer
                             blockList[i, j, k] = BlockType.None;
                         }
         }
-
-        public void DoStuff()
+        public void DoPhysics()
         {
+            DateTime lastFlowCalc = DateTime.Now;
+            bool physicsEnabled = true;
+            while (physicsEnabled)
+            {
+
+                TimeSpan timeSpan = DateTime.Now - lastFlowCalc;
+                
+                if (timeSpan.TotalMilliseconds > 250)
+                {
+                    lastFlowCalc = DateTime.Now;
+                    DoStuff();
+                }
+                Thread.Sleep(2);
+            }
+        }
+        public void DoStuff()
+        { 
            // bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
 
             //for (ushort i = 0; i < MAPSIZE; i++)
