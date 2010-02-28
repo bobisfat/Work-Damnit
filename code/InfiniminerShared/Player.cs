@@ -31,7 +31,13 @@ namespace Infiniminer
         DeconstructionGun,
         ProspectingRadar,
         Detonator,
-        SpawnItem
+        SpawnItem,
+        LeftHand,
+        RightHand,
+        Body,
+        Head,
+        LeftLeg,
+        RightLeg
     }
 
     public enum PlayerTeam

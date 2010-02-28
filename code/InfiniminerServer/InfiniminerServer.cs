@@ -1948,7 +1948,7 @@ namespace Infiniminer
                                                     case PlayerClass.Engineer:
                                                         player.OreMax = 350;
                                                         player.WeightMax = 4;
-                                                        player.HealthMax = 100;
+                                                        player.HealthMax = 400;
                                                         player.Health = player.HealthMax;
                                                         break;
                                                     case PlayerClass.Miner:
@@ -1960,13 +1960,13 @@ namespace Infiniminer
                                                     case PlayerClass.Prospector:
                                                         player.OreMax = 200;
                                                         player.WeightMax = 4;
-                                                        player.HealthMax = 300;
+                                                        player.HealthMax = 400;
                                                         player.Health = player.HealthMax;
                                                         break;
                                                     case PlayerClass.Sapper:
                                                         player.OreMax = 200;
                                                         player.WeightMax = 4;
-                                                        player.HealthMax = 200;
+                                                        player.HealthMax = 400;
                                                         player.Health = player.HealthMax;
                                                         break;
                                                 }
@@ -2378,6 +2378,23 @@ namespace Infiniminer
                                 {
                                     for (ushort b = (ushort)(k - 1); b < k + 2; b++)
                                     {
+                                        if (a == (ushort)(i - 1) && b == (ushort)(k - 1))
+                                        {
+                                            continue;
+                                        }
+                                        else if( a == i + 1 && b == k + 1)
+                                        {
+                                            continue;
+                                        }
+                                        else if (a == i - 1 && b == k + 1)
+                                        {
+                                            continue;
+                                        }
+                                        else if (a == i + 1 && b == (ushort)(k - 1))
+                                        {
+                                            continue;
+                                        }
+
                                         if (blockList[i, j, k] != BlockType.None)//has our water block moved on us?
                                         {
                                             //water slides if standing on an edge
@@ -2529,9 +2546,14 @@ namespace Infiniminer
                 return BlockType.None;
             return blockList[x, y, z];
         }
+        public bool waterblockTrace(ushort oX, ushort oY, ushort oZ, ushort dX, ushort dY, ushort dZ, BlockType allow)//only traces x/y not depth
+        {
+          
+            return true;
+        }
         public bool blockTrace(ushort oX,ushort oY,ushort oZ,ushort dX,ushort dY,ushort dZ,BlockType allow)//only traces x/y not depth
         {
-            while (oX != dX || oY != dY || oZ != dZ)
+            while (oX != dX && oY != dY && oZ != dZ)
             {
                 if (oX - dX > 0)
                 {
@@ -2633,6 +2655,13 @@ namespace Infiniminer
             switch (BlockAtPoint(hitPoint))
             {
                 case BlockType.Lava:
+                    if (varGetB("minelava"))
+                    {
+                        removeBlock = true;
+                        sound = InfiniminerSound.DigDirt;
+                    }
+                    break;
+                case BlockType.Water:
                     if (varGetB("minelava"))
                     {
                         removeBlock = true;

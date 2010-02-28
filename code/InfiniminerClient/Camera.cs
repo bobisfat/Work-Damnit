@@ -19,7 +19,7 @@ namespace Infiniminer
             Position = Vector3.Zero;
 
             float aspectRatio = device.Viewport.AspectRatio;
-            this.ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), aspectRatio, 0.01f, 1000.0f);
+            this.ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(70), aspectRatio, 0.01f, 200.0f);
         }
 
         // Returns a unit vector pointing in the direction that we're looking.

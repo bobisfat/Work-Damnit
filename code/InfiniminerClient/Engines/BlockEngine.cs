@@ -490,7 +490,7 @@ namespace Infiniminer
 
         public void AddBlock(ushort x, ushort y, ushort z, BlockType blockType)
         {
-            if (x <= 0 || y <= 0 || z <= 0 || x >= MAPSIZE - 1 || y >= MAPSIZE - 1 || z >= MAPSIZE - 1)
+            if (x <= 0 || y <= 0 || z <= 0 || (int)x >= MAPSIZE - 1 || (int)y >= MAPSIZE - 1 || (int)z >= MAPSIZE - 1)
                 return;
 
             blockList[x, y, z] = blockType;
