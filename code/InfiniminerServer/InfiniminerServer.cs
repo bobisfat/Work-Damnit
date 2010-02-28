@@ -2546,14 +2546,10 @@ namespace Infiniminer
                 return BlockType.None;
             return blockList[x, y, z];
         }
-        public bool waterblockTrace(ushort oX, ushort oY, ushort oZ, ushort dX, ushort dY, ushort dZ, BlockType allow)//only traces x/y not depth
-        {
-          
-            return true;
-        }
+
         public bool blockTrace(ushort oX,ushort oY,ushort oZ,ushort dX,ushort dY,ushort dZ,BlockType allow)//only traces x/y not depth
         {
-            while (oX != dX && oY != dY && oZ != dZ)
+            while (oX != dX || oY != dY || oZ != dZ)
             {
                 if (oX - dX > 0)
                 {
