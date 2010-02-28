@@ -53,6 +53,8 @@ namespace Infiniminer
         uint winningCashAmount = 10000;
         PlayerTeam winningTeam = PlayerTeam.None;
 
+        bool[, ,] flowSleep = new bool[64, 64, 64]; //if true, do not calculate this turn
+
         // Server restarting variables.
         DateTime restartTime = DateTime.Now;
         bool restartTriggered = false;
@@ -616,6 +618,19 @@ namespace Infiniminer
                     {
                         physicsEnabled = !physicsEnabled;
                         ConsoleWrite("Physics state is now: " + physicsEnabled);
+                    }
+                    break;
+                case "flowsleep":
+                    {
+                        uint sleepcount = 0;
+
+                        for (ushort i = 0; i < MAPSIZE; i++)
+                            for (ushort j = 0; j < MAPSIZE; j++)
+                                for (ushort k = 0; k < MAPSIZE; k++)
+                                    if (flowSleep[i, j, k] == true)
+                                        sleepcount += 1;
+
+                        ConsoleWrite(sleepcount +" liquids are happily sleeping.");
                     }
                     break;
                 case "admins":
@@ -1292,6 +1307,10 @@ namespace Infiniminer
                         }
                 sr.Close();
                 fs.Close();
+                for (ushort i = 0; i < MAPSIZE; i++)
+                    for (ushort j = 0; j < MAPSIZE; j++)
+                        for (ushort k = 0; k < MAPSIZE; k++)
+                            flowSleep[i, j, k] = false;
                 ConsoleWrite("Level loaded successfully - now playing " + filename + "!");
                 return true;
             }
@@ -1388,6 +1407,10 @@ namespace Infiniminer
             if (x <= 0 || y <= 0 || z <= 0 || (int)x >= MAPSIZE - 1 || (int)y >= MAPSIZE - 1 || (int)z >= MAPSIZE - 1)
                 return;
 
+            if (blockType == BlockType.None)//block removed, we must unsleep liquids nearby
+            {
+                Disturb(x, y, z);
+            }
             if (blockType == BlockType.BeaconRed || blockType == BlockType.BeaconBlue)
             {
                 Beacon newBeacon = new Beacon();
@@ -1444,9 +1467,15 @@ namespace Infiniminer
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableUnordered);
 
             if (blockType == BlockType.Lava)
+            {
                 lavaBlockCount += 1;
+                flowSleep[x, y, z] = false;
+            }
             if (blockType == BlockType.Water)
+            {
                 waterBlockCount += 1;
+                flowSleep[x, y, z] = false;
+            }
             
             //ConsoleWrite("BLOCKSET: " + x + " " + y + " " + z + " " + blockType.ToString());
         }
@@ -1464,6 +1493,7 @@ namespace Infiniminer
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
                     {
+                        flowSleep[i, j, k] = false;
                         blockList[i, (ushort)(MAPSIZE - 1 - k), j] = worldData[i, j, k];
                         blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 0] = 0;//pipe src x
                         blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 1] = 0;//pipe src y
@@ -2214,17 +2244,10 @@ namespace Infiniminer
         }
         public void DoStuff()
         { 
-           // bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
-
-            //for (ushort i = 0; i < MAPSIZE; i++)
-            //    for (ushort j = 0; j < MAPSIZE; j++)
-            //        for (ushort k = 0; k < MAPSIZE; k++)
-            //            flowSleep[i, j, k] = false;
-
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Water || blockList[i, j, k] == BlockType.Lava)// && !flowSleep[i, j, k])//should be liquid check, not comparing each block
+                        if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k]|| blockList[i, j, k] == BlockType.Lava && !flowSleep[i, j, k])//should be liquid check, not comparing each block
                         {//dowaterstuff //dolavastuff
                             BlockType liquid = blockList[i, j, k];
                             BlockType opposing = BlockType.None;
@@ -2335,7 +2358,6 @@ namespace Infiniminer
                                                     {
                                                         SetBlock(a, (ushort)(j - 1), b, liquid, PlayerTeam.None);
                                                         SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
-                                                        //Disturb(i, j, k, 4);//was supposed to wake up water around breaks
                                                         maxradius = 26;
                                                         a = 65;
                                                         b = 65;
@@ -2346,7 +2368,36 @@ namespace Infiniminer
                                     }
                                     maxradius += 1;//prevent water spreading too large, this is mainly to stop loop size getting too large
                                 }
-                            }    
+                            } 
+                            //extra checks for sleep
+                            uint surround = 0;
+                            if (blockList[i, j, k] == liquid)
+                            {
+                                for (ushort a = (ushort)(-1 + i); a <= 1 + i; a++)
+                                {
+                                    for (ushort b = (ushort)(-1 + j); b <= 1 + j; b++)
+                                    {
+                                        for (ushort c = (ushort)(-1 + k); c <= 1 + k; c++)
+                                        {
+                                            if (a > 0 && b > 0 && c > 0 && a < 64 && b < 64 && c < 64)
+                                            {
+                                                if (blockList[a, b, c] != BlockType.None)
+                                                {
+                                                    surround += 1;//block is surrounded by types it cant move through
+                                                }
+                                            }
+                                            else//surrounded by edge of map
+                                            {
+                                                surround += 1;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (surround >= 27)
+                                {
+                                    flowSleep[i, j, k] = true;
+                                }
+                            }
                         }
                         else if (blockList[i, j, k] == BlockType.Pump && blockListContent[i, j, k, 0] > 0)// content0 = determines if on
                         {//dopumpstuff
@@ -2404,37 +2455,15 @@ namespace Infiniminer
                             }
                         }
         }
-        public void Disturb(ushort i, ushort j, ushort k, ushort rad)
+        public void Disturb(ushort i, ushort j, ushort k)
         {
-      
-                                ushort maxradius = rad;//1
-           
-                                //while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
-                                //{
-                                    for (ushort a = (ushort)(-maxradius + i); a < maxradius + i; a++)
-                                    {
-                                        for (ushort b = (ushort)(-maxradius + k); b < maxradius + k; b++)
-                                        {
-                                           
-                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j-1 > 0)
-                                                if (blockList[a, j-1, b] == BlockType.None)
-                                                {
-                                                    if(blockTrace(a,(ushort)(j-1),b,i,(ushort)(j-1),k,BlockType.Water))
-                                                    {
-                                                        SetBlock(a, (ushort)(j-1), b, BlockType.Water, PlayerTeam.None);
-                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
-                                                        
-                                                        maxradius = 26;
-                                                        a = 65;
-                                                        b = 65;
-                                                    }
-                                                }
-                                        }
-
-                                    }
-                                  //  return;
-                                 //   maxradius += 1;
-                               // }
+            for (ushort a = (ushort)(i-1); a <= 1 + i; a++)
+                for (ushort b = (ushort)(j-1); b <= 1 + j; b++)
+                    for (ushort c = (ushort)(k-1); c <= 1 + k; c++)
+                        if (a > 0 && b > 0 && c > 0 && a < 64 && b < 64 && c < 64)
+                        {
+                            flowSleep[a, b, c] = false;
+                        }
         }
         public BlockType BlockAtPoint(Vector3 point)
         {
