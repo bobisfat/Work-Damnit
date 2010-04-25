@@ -13,3 +13,4 @@ code/*/obj
 # for some reason the above two ignores
 # don't work on this directory completely
 code/InfiniminerClient/Content/obj
+code/InfiniminerShared/Content/obj
