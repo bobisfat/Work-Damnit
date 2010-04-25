@@ -1,3 +1,0 @@
-D:\Testing Items\infiniminer\source3\Infiniminer\code\InfiniminerShared\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\Documents and Settings\Nic Leach\Desktop\krispykrem-Infiniminer-d9be05f\code\InfiniminerShared\Content\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\Infiniminer\code\InfiniminerShared\Content\obj\x86\Debug\ResolveAssemblyReference.cache
