@@ -265,7 +265,9 @@ namespace Infiniminer.States
         {
             base.OnKeyDown(key);
             if (key == Keys.Escape)
+            {
                 nextState = "Infiniminer.States.ServerBrowserState";
+            }
             else
             {
                 foreach (InterfaceElement element in elements)

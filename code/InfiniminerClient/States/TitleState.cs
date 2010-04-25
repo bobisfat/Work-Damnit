@@ -48,7 +48,7 @@ namespace Infiniminer.States
 
         public override void OnRenderAtEnter(GraphicsDevice graphicsDevice)
         {
-
+            nextState = "Infiniminer.States.ServerBrowserState";//removes title screen waiting for input
         }
 
         public override void OnRenderAtUpdate(GraphicsDevice graphicsDevice, GameTime gameTime)
