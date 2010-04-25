@@ -7,7 +7,6 @@ namespace Infiniminer
 {
     public class Camera
     {
-        //leb is still fat
         public float Pitch, Yaw;
         public Vector3 Position;
         public Matrix ViewMatrix = Matrix.Identity;
