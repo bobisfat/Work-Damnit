@@ -15,7 +15,7 @@ namespace Infiniminer
         public BlockType[, ,] blockList = null;    // In game coordinates, where Y points up.
         public Int32[, ,,] blockListContent = null;
         PlayerTeam[, ,] blockCreatorTeam = null;
-        const int MAPSIZE = 128;
+        const int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
         int lavaBlockCount = 0;
         int waterBlockCount = 0;
