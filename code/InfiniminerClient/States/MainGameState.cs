@@ -171,8 +171,18 @@ namespace Infiniminer.States
                         if (standingOnBlock != BlockType.Jump)
                         {
                             _P.screenEffect = ScreenEffect.Fall;
+                            if (((int)_P.playerHealth - (fallDamage*50)) > 0) {
+                                _P.playerHealth -= (uint)(fallDamage*50);
+                            } else {
+                                _P.playerHealth = 0;
+                            }
                             _P.screenEffectCounter = 2 - (fallDamage - 0.5) * 4;
                             _P.PlaySoundForEveryone(InfiniminerSound.GroundHit, _P.playerPosition);
+                            if (_P.playerHealth <= 0) {
+                                _P.KillPlayer(Defines.deathByFall);
+                            }
+
+                            _P.SendPlayerUpdate();
                         }
                     }
                 }

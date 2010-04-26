@@ -1740,7 +1740,7 @@ namespace Infiniminer
                                                     case PlayerClass.Prospector:
                                                         player.OreMax = 200;
                                                         player.WeightMax = 4;
-                                                        player.HealthMax = 500;
+                                                        player.HealthMax = 300;
                                                         player.Health = player.HealthMax;
                                                         break;
                                                     case PlayerClass.Sapper:
@@ -1770,6 +1770,7 @@ namespace Infiniminer
                                                 player.Ore = 0;
                                                 player.Cash = 0;
                                                 player.Weight = 0;
+                                                player.Health = 0;
                                                 player.Alive = false;
                                                 SendResourceUpdate(player);
                                                 SendPlayerDead(player);
@@ -1808,6 +1809,7 @@ namespace Infiniminer
                                                 player.Ore = 0;
                                                 player.Cash = 0;
                                                 player.Weight = 0;
+                                                player.Health = player.HealthMax;
                                                 player.Alive = true;
                                                 SendResourceUpdate(player);
                                                 SendPlayerAlive(player);
@@ -2245,6 +2247,7 @@ namespace Infiniminer
             uint giveOre = 0;
             uint giveCash = 0;
             uint giveWeight = 0;
+
             InfiniminerSound sound = InfiniminerSound.DigDirt;
 
             switch (BlockAtPoint(hitPoint))
@@ -2838,6 +2841,7 @@ namespace Infiniminer
                 msgBuffer.Write(player.UsingTool);
 
             msgBuffer.Write((ushort)player.Score / 100);
+            msgBuffer.Write((ushort)player.Health / 100);
 
             foreach (NetConnection netConn in playerList.Keys)
                 if (netConn.Status == NetConnectionStatus.Connected)
