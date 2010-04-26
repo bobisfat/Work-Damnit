@@ -309,14 +309,6 @@ namespace Infiniminer.States
                 return true;
             }
 
-            if (upperBlock == BlockType.Water || lowerBlock == BlockType.Water || midBlock == BlockType.Water)
-            {
-                _P.screenEffect = ScreenEffect.Fall;
-                _P.screenEffectCounter = 5;
-                _P.PlaySoundForEveryone(InfiniminerSound.Death, _P.playerPosition);                
-                return true;
-            }
-
             // If it's a ladder, move up.
             if (upperBlock == BlockType.Ladder || lowerBlock == BlockType.Ladder || midBlock == BlockType.Ladder)
             {
