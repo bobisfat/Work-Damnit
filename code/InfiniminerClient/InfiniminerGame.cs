@@ -302,7 +302,7 @@ namespace Infiniminer
                                                     propertyBag.blockEngine.RemoveBlock(x, y, z);
                                                 propertyBag.blockEngine.AddBlock(x, y, z, blockType);
                                                 CheckForStandingInLava();
-                                                CheckForStandingInWater();
+                                                //CheckForStandingInWater();
                                             }
                                         }
                                         break;
