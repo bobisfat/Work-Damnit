@@ -1728,18 +1728,26 @@ namespace Infiniminer
                                                     case PlayerClass.Engineer:
                                                         player.OreMax = 350;
                                                         player.WeightMax = 4;
+                                                        player.HealthMax = 100;
+                                                        player.Health = player.HealthMax;
                                                         break;
                                                     case PlayerClass.Miner:
                                                         player.OreMax = 200;
                                                         player.WeightMax = 8;
+                                                        player.HealthMax = 400;
+                                                        player.Health = player.HealthMax;
                                                         break;
                                                     case PlayerClass.Prospector:
                                                         player.OreMax = 200;
                                                         player.WeightMax = 4;
+                                                        player.HealthMax = 500;
+                                                        player.Health = player.HealthMax;
                                                         break;
                                                     case PlayerClass.Sapper:
                                                         player.OreMax = 200;
                                                         player.WeightMax = 4;
+                                                        player.HealthMax = 200;
+                                                        player.Health = player.HealthMax;
                                                         break;
                                                 }
                                                 SendResourceUpdate(player);
@@ -2752,6 +2760,8 @@ namespace Infiniminer
             msgBuffer.Write((uint)(player.Team == PlayerTeam.Red ? teamOreRed : teamOreBlue));
             msgBuffer.Write((uint)teamCashRed);
             msgBuffer.Write((uint)teamCashBlue);
+            msgBuffer.Write((uint)player.Health);
+            msgBuffer.Write((uint)player.HealthMax);
             netServer.SendMessage(msgBuffer, player.NetConn, NetChannel.ReliableInOrder1);
         }
 

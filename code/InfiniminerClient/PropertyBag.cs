@@ -46,6 +46,8 @@ namespace Infiniminer
         public PlayerTeam playerTeam = PlayerTeam.Red;
         public bool playerDead = true;
         public uint playerOre = 0;
+        public uint playerHealth = 0;
+        public uint playerHealthMax = 0;
         public uint playerCash = 0;
         public uint playerWeight = 0;
         public uint playerOreMax = 0;

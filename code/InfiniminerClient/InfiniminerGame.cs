@@ -302,6 +302,8 @@ namespace Infiniminer
                                             propertyBag.teamOre = msgBuffer.ReadUInt32();
                                             propertyBag.teamRedCash = msgBuffer.ReadUInt32();
                                             propertyBag.teamBlueCash = msgBuffer.ReadUInt32();
+                                            propertyBag.playerHealth = msgBuffer.ReadUInt32();
+                                            propertyBag.playerHealthMax = msgBuffer.ReadUInt32();
                                         }
                                         break;
 
