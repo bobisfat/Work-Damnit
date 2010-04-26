@@ -302,7 +302,6 @@ namespace Infiniminer
                                                     propertyBag.blockEngine.RemoveBlock(x, y, z);
                                                 propertyBag.blockEngine.AddBlock(x, y, z, blockType);
                                                 CheckForStandingInLava();
-                                                CheckForStandingInWater();
                                             }
                                         }
                                         break;
@@ -480,17 +479,8 @@ namespace Infiniminer
             {
                 propertyBag.KillPlayer(Defines.deathByLava);
             }
+
         }
-
-        private void CheckForStandingInWater()
-        {
-                //_P.screenEffect = ScreenEffect.Fall;
-                //_P.screenEffectCounter = 5;
-                //_P.PlaySoundForEveryone(InfiniminerSound.Death, _P.playerPosition);
-                //return true;
-        }
-
-
 
         protected override void Initialize()
         {
