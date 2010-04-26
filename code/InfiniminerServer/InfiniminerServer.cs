@@ -13,6 +13,7 @@ namespace Infiniminer
     {
         InfiniminerNetServer netServer = null;
         public BlockType[, ,] blockList = null;    // In game coordinates, where Y points up.
+        public Int32[, ,,] blockListContent = null;
         PlayerTeam[, ,] blockCreatorTeam = null;
         const int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
@@ -1298,6 +1299,13 @@ namespace Infiniminer
                 beaconList[new Vector3(x, y, z)] = newBeacon;
                 SendSetBeacon(new Vector3(x, y+1, z), newBeacon.ID, newBeacon.Team);
             }
+            else if(blockType == BlockType.Pipe)
+            {
+                blockListContent[x, y, z, 0] = -1;
+                blockListContent[x, y, z, 1] = -1;
+                blockListContent[x, y, z, 2] = -1;
+                blockListContent[x, y, z, 3] = -1;
+            }
 
             if (blockType == BlockType.None && (blockList[x, y, z] == BlockType.BeaconRed || blockList[x, y, z] == BlockType.BeaconBlue))
             {
@@ -1333,12 +1341,17 @@ namespace Infiniminer
             // Create our block world, translating the coordinates out of the cave generator (where Z points down)
             BlockType[, ,] worldData = CaveGenerator.GenerateCaveSystem(MAPSIZE, includeLava, oreFactor, includeWater);
             blockList = new BlockType[MAPSIZE, MAPSIZE, MAPSIZE];
+            blockListContent = new Int32[MAPSIZE, MAPSIZE, MAPSIZE,10];
             blockCreatorTeam = new PlayerTeam[MAPSIZE, MAPSIZE, MAPSIZE];
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
                     {
                         blockList[i, (ushort)(MAPSIZE - 1 - k), j] = worldData[i, j, k];
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 0] = -1;//pipe src x
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 1] = -1;//pipe src y
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 2] = -1;//pipe dst x
+                        blockListContent[i,(ushort)(MAPSIZE - 1 - k), j, 3] = -1;//pipe dst y
                         blockCreatorTeam[i, j, k] = PlayerTeam.None;
                     }
             for (int i = 0; i < MAPSIZE * 2; i++)
@@ -2004,141 +2017,21 @@ namespace Infiniminer
                     for (ushort k = 0; k < MAPSIZE; k++)
                         if (blockList[i, j, k] == BlockType.Pump && !flowSleep[i, j, k])
                         {
-                            if (i > 0 && blockList[i, j, k + 1] == BlockType.Water)
+                            for (int a = -1; a < 2; a++)
                             {
-                                SetBlock(i, j, (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j, k + 1] = true;
+                                for (int b = -1; b < 2; b++)
+                                {
+                                    for (int c = -1; c < 2; c++)
+                                    {
+                                        if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
+                                        {
+                                            SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
+                                            flowSleep[i + a, j + b, k + c] = true;
+                                        }
+                                    }
+                                }
                             }
-                            if (i > 0 && blockList[i, j, k - 1] == BlockType.Water)
-                            {
-                                SetBlock(i, j, (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j, k - 1] = true;
-                            }
-                            if (i > 0 && blockList[i, j + 1, k] == BlockType.Water)
-                            {
-                                SetBlock(i, (ushort)(j + 1), k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j + 1, k] = true;
-                            }
-                            if (i > 0 && blockList[i, j + 1, k + 1] == BlockType.Water)
-                            {
-                                SetBlock(i, (ushort)(j + 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j + 1, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i, j + 1, k - 1] == BlockType.Water)
-                            {
-                                SetBlock(i, (ushort)(j + 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j + 1, k - 1] = true;
-                            }
-                            if (i > 0 && blockList[i, j - 1, k] == BlockType.Water)
-                            {
-                                SetBlock(i, (ushort)(j - 1), k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j - 1, k] = true;
-                            }
-                            if (i > 0 && blockList[i, j - 1, k + 1] == BlockType.Water)
-                            {
-                                SetBlock(i, (ushort)(j - 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j - 1, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i, j - 1, k - 1] == BlockType.Water)
-                            {
-                                SetBlock(i, (ushort)(j - 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i, j - 1, k - 1] = true;
-                            }
-                            //
-                            //
-                            if (i > 0 && blockList[i + 1, j, k] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), j, k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j, k] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j, k + 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), j, (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j, k - 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), j, (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j, k - 1] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j + 1, k] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), (ushort)(j + 1), k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j + 1, k] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j + 1, k + 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), (ushort)(j + 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j + 1, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j + 1, k - 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), (ushort)(j + 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j + 1, k - 1] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j - 1, k] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), (ushort)(j - 1), k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j - 1, k] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j - 1, k + 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), (ushort)(j - 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j - 1, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i + 1, j - 1, k - 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i + 1), (ushort)(j - 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i + 1, j - 1, k - 1] = true;
-                            }
-                            //
-                            //
-                            if (i > 0 && blockList[i - 1, j, k] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), j, k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j, k] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j, k + 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), j, (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j, k - 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), j, (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j, k - 1] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j + 1, k] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), (ushort)(j + 1), k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j + 1, k] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j + 1, k + 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), (ushort)(j + 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j + 1, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j + 1, k - 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), (ushort)(j + 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j + 1, k - 1] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j - 1, k] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), (ushort)(j - 1), k, BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j - 1, k] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j - 1, k + 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), (ushort)(j - 1), (ushort)(k + 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j - 1, k + 1] = true;
-                            }
-                            if (i > 0 && blockList[i - 1, j - 1, k - 1] == BlockType.Water)
-                            {
-                                SetBlock((ushort)(i - 1), (ushort)(j - 1), (ushort)(k - 1), BlockType.None, PlayerTeam.None);
-                                flowSleep[i - 1, j - 1, k - 1] = true;
-                            }
-                        }
+                         }
         }
 
         public void DoWaterStuff()
