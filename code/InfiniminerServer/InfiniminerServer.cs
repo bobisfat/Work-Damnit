@@ -15,7 +15,7 @@ namespace Infiniminer
         public BlockType[, ,] blockList = null;    // In game coordinates, where Y points up.
         public Int32[, ,,] blockListContent = null;
         PlayerTeam[, ,] blockCreatorTeam = null;
-        const int MAPSIZE = 64;
+        public int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
         int lavaBlockCount = 0;
         int waterBlockCount = 0;
@@ -1187,9 +1187,9 @@ namespace Infiniminer
         {
             FileStream fs = new FileStream(filename, FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
-            for (int x = 0; x < 64; x++)
-                for (int y = 0; y < 64; y++)
-                    for (int z = 0; z < 64; z++)
+            for (int x = 0; x < MAPSIZE; x++)
+                for (int y = 0; y < MAPSIZE; y++)
+                    for (int z = 0; z < MAPSIZE; z++)
                         sw.WriteLine((byte)blockList[x, y, z] + "," + (byte)blockCreatorTeam[x, y, z]);
             sw.Close();
             fs.Close();
@@ -1209,9 +1209,9 @@ namespace Infiniminer
                 
                 FileStream fs = new FileStream(filename, FileMode.Open);
                 StreamReader sr = new StreamReader(fs);
-                for (int x = 0; x < 64; x++)
-                    for (int y = 0; y < 64; y++)
-                        for (int z = 0; z < 64; z++)
+                for (int x = 0; x < MAPSIZE; x++)
+                    for (int y = 0; y < MAPSIZE; y++)
+                        for (int z = 0; z < MAPSIZE; z++)
                         {
                             string line = sr.ReadLine();
                             string[] fileArgs = line.Split(",".ToCharArray());
