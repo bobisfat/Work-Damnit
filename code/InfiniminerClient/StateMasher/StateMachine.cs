@@ -36,6 +36,7 @@ namespace StateMasher
         private bool needToRenderOnEnter = false;
 
         private int frameCount = 0;
+        private DateTime lastFPScheck = DateTime.Now;
         private double frameRate = 0;
         public double FrameRate
         {
@@ -114,8 +115,12 @@ namespace StateMasher
 
         protected override void Update(GameTime gameTime)
         {
-            if (frameCount > 0)
-                frameRate = frameCount / gameTime.TotalRealTime.TotalSeconds;
+            if (lastFPScheck <= DateTime.Now - TimeSpan.FromMilliseconds(1000))
+            {
+                lastFPScheck = DateTime.Now;
+                frameRate = frameCount;// / gameTime.ElapsedTotalTime.TotalSeconds;
+                frameCount = 0;
+            }
 
             if (currentState != null && propertyBag != null)
             {
@@ -152,7 +157,7 @@ namespace StateMasher
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
-
+            
             // Call OnRenderAtUpdate.
             if (currentState != null && propertyBag != null)
             {

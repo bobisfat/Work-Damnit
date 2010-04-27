@@ -17,7 +17,7 @@ namespace Infiniminer
         PlayerTeam[, ,] blockCreatorTeam = null;
         public int MAPSIZE = 64;
         Dictionary<NetConnection, Player> playerList = new Dictionary<NetConnection, Player>();
-        
+        bool sleeping = true;
         int lavaBlockCount = 0;
         int waterBlockCount = 0;
         uint oreFactor = 10;
@@ -60,6 +60,54 @@ namespace Infiniminer
         Dictionary<string, int> varIntBindings = new Dictionary<string, int>();
         Dictionary<string,string> varDescriptions = new Dictionary<string,string>();
         Dictionary<string, bool> varAreMessage = new Dictionary<string, bool>();
+
+        public Vector3 Auth_Position(Vector3 pos,Player pl)//check boundaries and legality of action
+        {
+            BlockType testpoint = BlockAtPoint(pos);
+
+            if (testpoint == BlockType.None || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
+            {//check if player is not in wall
+               //falldamage
+            }
+            else
+            {
+                if (pl.Alive)
+                {
+                    pl.Ore = 0;//should be calling death function for player
+                    pl.Cash = 0;
+                    pl.Weight = 0;
+                    pl.Health = 0;
+                    pl.Alive = false;
+
+                    SendResourceUpdate(pl);
+                    SendPlayerDead(pl);
+
+                    ConsoleWrite("refused" + pl.Handle + " " + pos.X + "/" + pos.Y + "/" + pos.Z);
+                    return pl.Position;
+                }
+                else//player is dead, return position silent
+                {
+                    return pl.Position;
+                }
+            }
+
+            //if (Distf(pl.Position, pos) > 0.35)
+            //{   //check that players last update is not further than it should be
+            //    ConsoleWrite("refused" + pl.Handle + " speed:" + Distf(pl.Position, pos));
+            //    //should call force update player position
+            //    return pos;// pl.Position;
+            //}
+            //else
+            //{
+            //    return pos;
+            //}
+
+            return pos;
+        }
+        public Vector3 Auth_Heading(Vector3 head)//check boundaries and legality of action
+        {
+            return head;
+        }
 
         public void varBindingsInitialize()
         {
@@ -1271,7 +1319,7 @@ namespace Infiniminer
         List<string> beaconIDList = new List<string>();
         Dictionary<Vector3, Beacon> beaconList = new Dictionary<Vector3, Beacon>();
         List<string> itemIDList = new List<string>();
-        Dictionary<Vector3, Item> itemList = new Dictionary<Vector3, Item>();
+        Dictionary<string, Item> itemList = new Dictionary<string, Item>();
 
         Random randGen = new Random();
         public string _GenerateBeaconID()
@@ -1311,9 +1359,9 @@ namespace Infiniminer
                 newItem.ID = GenerateItemID();
                 newItem.Team = team;
                 newItem.Heading = heading;
-
-                itemList[pos] = newItem;
-                SendSetItem(pos, newItem.ID, newItem.Team, newItem.Heading);
+                newItem.Position = pos;
+                itemList[newItem.ID] = newItem;
+                SendSetItem(newItem.ID, newItem.Position, newItem.Team, newItem.Heading);
         }
         public void SetBlock(ushort x, ushort y, ushort z, BlockType blockType, PlayerTeam team)
         {
@@ -1352,7 +1400,14 @@ namespace Infiniminer
             msgBuffer.Write((byte)x);
             msgBuffer.Write((byte)y);
             msgBuffer.Write((byte)z);
-            msgBuffer.Write((byte)blockType);
+            if (blockType == BlockType.Vacuum)
+            {
+                msgBuffer.Write((byte)BlockType.None);
+            }
+            else
+            {
+                msgBuffer.Write((byte)blockType);
+            }
             foreach (NetConnection netConn in playerList.Keys)
                 if (netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableUnordered);
@@ -1403,7 +1458,14 @@ namespace Infiniminer
             double distance = Math.Sqrt(dx * dx + dy * dy + dz * dz);
             return distance;
         }
-
+        public double Distf(Vector3 x, Vector3 y)
+        {
+            float dx = y.X - x.X;
+            float dy = y.Y - x.Y;
+            float dz = y.Z - x.Z;
+            float dist = (float)(Math.Sqrt(dx * dx + dy * dy + dz * dz));
+            return dist;
+        }
         public string GetExplosionPattern(int n)
         {
             string output="";
@@ -1537,7 +1599,7 @@ namespace Infiniminer
 
             // Store the last time that we did a flow calculation.
             DateTime lastFlowCalc = DateTime.Now;
-
+            int secondflow = 0;
             //Check if we should autoload a level
             if (dataFile.Data.ContainsKey("autoload") && bool.Parse(dataFile.Data["autoload"]))
             {
@@ -1627,6 +1689,7 @@ namespace Infiniminer
 
                                     if (msgSender.Status == NetConnectionStatus.Connected)
                                     {
+                                        sleeping = false;
                                         ConsoleWrite("CONNECT: " + playerList[msgSender].Handle + " ( " + playerList[msgSender].IP + " )");
                                         SendCurrentMap(msgSender);
                                         SendPlayerJoined(player);
@@ -1639,6 +1702,18 @@ namespace Infiniminer
                                         SendPlayerLeft(player, player.Kicked ? "WAS KICKED FROM THE GAME!" : "HAS ABANDONED THEIR DUTIES!");
                                         if (playerList.ContainsKey(msgSender))
                                             playerList.Remove(msgSender);
+
+                                        sleeping = true;
+                                        foreach (Player p in playerList.Values)
+                                        {
+                                            sleeping = false;
+                                        }
+
+                                        if (sleeping == true)
+                                        {
+                                            ConsoleWrite("HIBERNATING");
+                                        }
+
                                         PublicServerListUpdate();
                                     }
                                 }
@@ -1818,14 +1893,48 @@ namespace Infiniminer
 
                                         case InfiniminerMessage.PlayerUpdate:
                                             {
-                                                player.Position = msgBuffer.ReadVector3();
-                                                player.Heading = msgBuffer.ReadVector3();
+                                                player.Position = Auth_Position(msgBuffer.ReadVector3(),player);
+                                                player.Heading = Auth_Heading(msgBuffer.ReadVector3());
                                                 player.Tool = (PlayerTools)msgBuffer.ReadByte();
                                                 player.UsingTool = msgBuffer.ReadBoolean();
                                                 SendPlayerUpdate(player);
                                             }
                                             break;
+                                        case InfiniminerMessage.PlayerUpdate1://minus position
+                                            {
+                                                player.Heading = Auth_Heading(msgBuffer.ReadVector3());
+                                                player.Tool = (PlayerTools)msgBuffer.ReadByte();
+                                                player.UsingTool = msgBuffer.ReadBoolean();
+                                                SendPlayerUpdate(player);
+                                            }
+                                            break;
+                                        case InfiniminerMessage.PlayerUpdate2://minus position and heading
+                                            {
+                                                player.Tool = (PlayerTools)msgBuffer.ReadByte();
+                                                player.UsingTool = msgBuffer.ReadBoolean();
+                                                SendPlayerUpdate(player);
+                                            }
+                                            break;
+                                        case InfiniminerMessage.PlayerHurt://client speaks of fall damage
+                                            {
+                                                uint newhp = msgBuffer.ReadUInt32();
+                                                if (newhp < player.Health)
+                                                {
+                                                    player.Health = newhp;
+                                                    if (player.Health < 1)
+                                                    {
+                                                        player.Ore = 0;//should be calling death function for player
+                                                        player.Cash = 0;
+                                                        player.Weight = 0;
+                                                        player.Health = 0;
+                                                        player.Alive = false;
 
+                                                        SendResourceUpdate(player);
+                                                        SendPlayerDead(player);
+                                                    }
+                                                }
+                                            }
+                                            break;
                                         case InfiniminerMessage.DepositOre:
                                             {
                                                 DepositOre(player);
@@ -1855,6 +1964,15 @@ namespace Infiniminer
                                                 PlaySound(sound, position);
                                             }
                                             break;
+
+                                        case InfiniminerMessage.GetItem:
+                                            {
+                                                //verify players position before get
+                                                player.Position = Auth_Position(msgBuffer.ReadVector3(), player);
+                                                
+                                                GetItem(player,msgBuffer.ReadString());
+                                            }
+                                            break;
                                     }
                                 }
                                 break;
@@ -1867,6 +1985,7 @@ namespace Infiniminer
                 TimeSpan mapUpdateTimeSpan = DateTime.Now - lastMapBackup;
                 if (mapUpdateTimeSpan.TotalMinutes > 5)
                 {
+                    lastMapBackup = DateTime.Now;
                     SaveLevel("autoBK.lvl");
                 }
 
@@ -1881,12 +2000,36 @@ namespace Infiniminer
 
                 // Is it time to do a lava calculation? If so, do it!
                 TimeSpan timeSpan = DateTime.Now - lastFlowCalc;
-                if (timeSpan.TotalMilliseconds > 500)
+                if (timeSpan.TotalMilliseconds > 250)//needs separate timer for each substance
                 {
+                    //secondflow += 1;
+
+                    //if (secondflow > 2)//every 2nd flow, remove the vacuum that prevent re-spread
+                    //{
+                    //    EraseVacuum();
+                    //    secondflow = 0;
+                    //}
+
                     DoLavaStuff();
                     DoWaterStuff();
                     DoPumpStuff();
+
                     lastFlowCalc = DateTime.Now;
+
+                    foreach (Player p in playerList.Values)//regeneration
+                    {
+                        if (p.Alive)
+                            if (p.Health >= p.HealthMax)
+                            {
+                                p.Health = p.HealthMax;
+                            }
+                            else
+                            {
+                                p.Health = p.Health + 1;
+                                SendResourceUpdate(p);
+                            }
+                    }
+                   
                 }
 
                 // Handle console keypresses.
@@ -1925,7 +2068,13 @@ namespace Infiniminer
                 }
 
                 // Pass control over to waiting threads.
-                Thread.Sleep(1);
+                if(sleeping == true) {
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    Thread.Sleep(1);
+                }
             }
 
             MessageAll("Server going down NOW!");
@@ -2049,46 +2198,82 @@ namespace Infiniminer
         {
             bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
 
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        flowSleep[i, j, k] = false;
+            //for (ushort i = 0; i < MAPSIZE; i++)
+            //    for (ushort j = 0; j < MAPSIZE; j++)
+            //        for (ushort k = 0; k < MAPSIZE; k++)
+            //            flowSleep[i, j, k] = false;
 
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
                         if (blockList[i, j, k] == BlockType.Pump && !flowSleep[i, j, k])
                         {
+                            if (j > 0 && blockList[i, j - 1, k] == BlockType.None)//TEMPORARY FOR WATER GENERATION
+                            {//TEMPORARY FOR WATER GENERATION
+                                SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);//TEMPORARY FOR WATER GENERATION
+                            }//TEMPORARY FOR WATER GENERATION
+                            BlockType pumpheld = BlockType.None;
                             for (int a = -1; a < 2; a++)
                             {
                                 for (int b = -1; b < 2; b++)
                                 {
+                                    if (b == -1 && a == 0 && b == 0)//this is below the pump
+                                    {
+                                        continue;//go to next pump attempt
+                                    }
                                     for (int c = -1; c < 2; c++)
                                     {
-                                        if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
+                                        if(i + a < MAPSIZE && j + b < MAPSIZE && k + c < MAPSIZE && i + a > 0 && j + b > 0 && k + c > 0)//check pump bounds
                                         {
-                                            SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                                            flowSleep[i + a, j + b, k + c] = true;
+                                            if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Water)
+                                            {
+                                                pumpheld = BlockType.Water;
+                                                SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
+                                                flowSleep[i + a, j + b, k + c] = true;
+                                            }
+                                            if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Lava)
+                                            {
+                                                pumpheld = BlockType.Lava;
+                                                SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
+                                                flowSleep[i + a, j + b, k + c] = true;
+                                            }
                                         }
                                     }
+                                }
+                            }
+                            if (pumpheld != BlockType.None)
+                            {
+                                if (j > 0 && blockList[i, j-1, k] == BlockType.None) {
+                                SetBlock(i, (ushort)(j-1), k, pumpheld, PlayerTeam.None);//places its contents downward
                                 }
                             }
                          }
         }
 
+        public void EraseVacuum()
+        {
+            for (ushort i = 0; i < MAPSIZE; i++)
+                for (ushort j = 0; j < MAPSIZE; j++)
+                    for (ushort k = 0; k < MAPSIZE; k++)
+                        if (blockList[i, j, k] == BlockType.Vacuum)
+                        {
+                            blockList[i, j, k] = BlockType.None;
+                        }
+        }
+
         public void DoWaterStuff()
         {
-            bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+           // bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
+
+            //for (ushort i = 0; i < MAPSIZE; i++)
+            //    for (ushort j = 0; j < MAPSIZE; j++)
+            //        for (ushort k = 0; k < MAPSIZE; k++)
+            //            flowSleep[i, j, k] = false;
 
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        flowSleep[i, j, k] = false;
-
-            for (ushort i = 0; i < MAPSIZE; i++)
-                for (ushort j = 0; j < MAPSIZE; j++)
-                    for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Water && !flowSleep[i, j, k])
+                        if (blockList[i, j, k] == BlockType.Water)// && !flowSleep[i, j, k])
                         {
                             // RULES FOR LAVA EXPANSION:
                             // if the block below is lava, do nothing
@@ -2096,110 +2281,157 @@ namespace Infiniminer
                             // if the block below is something solid (or insane lava is on), add lava to the sides
                             // if shock block spreading is enabled and there is a schock block in any direction...
                             // if road block above and roadabsorbs is enabled then contract
+
+                            //check for conflicting lava
                             if (i > 0 && blockList[i - 1, j, k] == BlockType.Lava)
                             {
                                 SetBlock((ushort)(i - 1), j, k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i - 1, j, k] = true;
+                              //  flowSleep[i - 1, j, k] = true;
                             }
                             if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.Lava)
                             {
                                 SetBlock((ushort)(i + 1), j, k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i + 1, j, k] = true;
+                             //   flowSleep[i + 1, j, k] = true;
                             }
                             if (k > 0 && blockList[i, j - 1, k] == BlockType.Lava)
                             {
                                 SetBlock(i, (ushort)(j - 1), k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, (ushort)(j - 1), k] = true;
+                             //   flowSleep[i, (ushort)(j - 1), k] = true;
                             }
                             if (k > 0 && blockList[i, (ushort)(j + 1), k] == BlockType.Lava)
                             {
                                 SetBlock(i, (ushort)(j + 1), k, BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, (ushort)(j + 1), k] = true;
+                              //  flowSleep[i, (ushort)(j + 1), k] = true;
                             }
                             if (k > 0 && blockList[i, j, k - 1] == BlockType.Lava)
                             {
                                 SetBlock(i, j, (ushort)(k - 1), BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, j, k - 1] = true;
+                             //   flowSleep[i, j, k - 1] = true;
                             }
                             if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.Lava)
                             {
                                 SetBlock(i, j, (ushort)(k + 1), BlockType.Rock, PlayerTeam.None);
-                                flowSleep[i, j, k + 1] = true;
+                             //   flowSleep[i, j, k + 1] = true;
                             }
-                            if (varGetB("sspreads"))
-                            {
-                                BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
-                                if (i > 0 && blockList[i - 1, j, k] == BlockType.Shock)
-                                {
-                                    SetBlock((ushort)(i - 1), j, k, BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i - 1, j, k] = true;
-                                }
-                                if (k > 0 && blockList[i, j, k - 1] == BlockType.Shock)
-                                {
-                                    SetBlock(i, j, (ushort)(k - 1), BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i, j, k - 1] = true;
-                                }
-                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.Shock)
-                                {
-                                    SetBlock((ushort)(i + 1), j, k, BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i + 1, j, k] = true;
-                                }
-                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.Shock)
-                                {
-                                    SetBlock(i, j, (ushort)(k + 1), BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i, j, k + 1] = true;
-                                }
-                                if (typeAbove == BlockType.Shock) //Spread up
-                                {
-                                    SetBlock(i, (ushort)(j + 1), k, BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i, j + 1, k] = true;
-                                }
-                                //Don't spread down...
-                            }
+
                             if (varGetB("roadabsorbs"))
                             {
                                 BlockType typeAbove = ((int)j == MAPSIZE - 1) ? BlockType.None : blockList[i, j + 1, k];
                                 if (typeAbove == BlockType.Road)
                                 {
                                     SetBlock(i, j, k, BlockType.Road, PlayerTeam.None);
-                                    flowSleep[i, j, k] = true;
+                                 //   flowSleep[i, j, k] = true;
                                 }
                             }
                             BlockType typeBelow = (j == 0) ? BlockType.Water : blockList[i, j - 1, k];
-                            if (typeBelow == BlockType.None)
+                            if (typeBelow == BlockType.Pipe)//none//trying radius fill
                             {
                                 if (j > 0)
                                 {
-                                    SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i, j - 1, k] = true;
+                                   // SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
+                                    //flowSleep[i, j - 1, k] = true;
+
+                                    //beta waterfalls
+                                    //SetBlock(i, j, k, BlockType.None, PlayerTeam.None);
                                 }
                             }
-                            else if (typeBelow != BlockType.Water || varGetB("insanewater"))
+                            else if (typeBelow == BlockType.Water || typeBelow == BlockType.None)
                             {
-                                if (i > 0 && blockList[i - 1, j, k] == BlockType.None)
+                                ushort maxradius = 1;//1
+           
+                                while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
                                 {
-                                    SetBlock((ushort)(i - 1), j, k, BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i - 1, j, k] = true;
+                                    for (ushort a = (ushort)(-maxradius + i); a < maxradius + i; a++)
+                                    {
+                                        for (ushort b = (ushort)(-maxradius + k); b < maxradius + k; b++)
+                                        {
+                                           
+                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j-1 > 0)
+                                                if (blockList[a, j-1, b] == BlockType.None)
+                                                {
+                                                    if(blockTrace(a,(ushort)(j-1),b,i,(ushort)(j-1),k,BlockType.Water))
+                                                    {
+                                                        SetBlock(a, (ushort)(j-1), b, BlockType.Water, PlayerTeam.None);
+                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
+                                                        //Disturb(i, j, k, 4);//was supposed to wake up water around breaks
+                                                        maxradius = 26;
+                                                        a = 65;
+                                                        b = 65;
+                                                    }
+                                                }
+                                        }
+
+                                    }
+                                  //  return;
+                                    maxradius += 1;
                                 }
-                                if (k > 0 && blockList[i, j, k - 1] == BlockType.None)
-                                {
-                                    SetBlock(i, j, (ushort)(k - 1), BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i, j, k - 1] = true;
-                                }
-                                if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None)
-                                {
-                                    SetBlock((ushort)(i + 1), j, k, BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i + 1, j, k] = true;
-                                }
-                                if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None)
-                                {
-                                    SetBlock(i, j, (ushort)(k + 1), BlockType.Water, PlayerTeam.None);
-                                    flowSleep[i, j, k + 1] = true;
-                                }
+                               
+                                   // ConsoleWrite("water too large");
+                                   // SetBlock(i, j, k, BlockType.Vacuum, PlayerTeam.None);
+                                  //  return;
+                              
+                                //bool oneblock = true;
+                                //if (i > 0 && blockList[i - 1, j, k] == BlockType.None && oneblock)
+                                //{
+                                //    oneblock = false;
+                                //    SetBlock((ushort)(i - 1), j, k, BlockType.Water, PlayerTeam.None);
+                                //    flowSleep[i - 1, j, k] = true;
+                                //}
+                                //if (k > 0 && blockList[i, j, k - 1] == BlockType.None && oneblock)
+                                //{
+                                //    oneblock = false;
+                                //    SetBlock(i, j, (ushort)(k - 1), BlockType.Water, PlayerTeam.None);
+                                //    flowSleep[i, j, k - 1] = true;
+                                //}
+                                //if ((int)i < MAPSIZE - 1 && blockList[i + 1, j, k] == BlockType.None && oneblock)
+                                //{
+                                //    oneblock = false;
+                                //    SetBlock((ushort)(i + 1), j, k, BlockType.Water, PlayerTeam.None);
+                                //    flowSleep[i + 1, j, k] = true;
+                                //}
+                                //if ((int)k < MAPSIZE - 1 && blockList[i, j, k + 1] == BlockType.None && oneblock)
+                                //{
+                                //    oneblock = false;
+                                //    SetBlock(i, j, (ushort)(k + 1), BlockType.Water, PlayerTeam.None);
+                                //    flowSleep[i, j, k + 1] = true;
+                                //}
+
+                                //SetBlock(i, j, k, BlockType.Vacuum, PlayerTeam.None);
                             }
                         }
         }
+        public void Disturb(ushort i, ushort j, ushort k, ushort rad)
+        {
+      
+                                ushort maxradius = rad;//1
+           
+                                //while (maxradius < 25)//need to exclude old checks and require a* pathing check to source
+                                //{
+                                    for (ushort a = (ushort)(-maxradius + i); a < maxradius + i; a++)
+                                    {
+                                        for (ushort b = (ushort)(-maxradius + k); b < maxradius + k; b++)
+                                        {
+                                           
+                                            if (a > 0 && b > 0 && a < 64 && b < 64 && j-1 > 0)
+                                                if (blockList[a, j-1, b] == BlockType.None)
+                                                {
+                                                    if(blockTrace(a,(ushort)(j-1),b,i,(ushort)(j-1),k,BlockType.Water))
+                                                    {
+                                                        SetBlock(a, (ushort)(j-1), b, BlockType.Water, PlayerTeam.None);
+                                                        SetBlock(i, j, k, BlockType.None, PlayerTeam.None);//using vacuum blocks temporary refill
+                                                        
+                                                        maxradius = 26;
+                                                        a = 65;
+                                                        b = 65;
+                                                    }
+                                                }
+                                        }
 
+                                    }
+                                  //  return;
+                                 //   maxradius += 1;
+                               // }
+        }
         public BlockType BlockAtPoint(Vector3 point)
         {
             ushort x = (ushort)point.X;
@@ -2209,7 +2441,46 @@ namespace Infiniminer
                 return BlockType.None;
             return blockList[x, y, z];
         }
+        public bool blockTrace(ushort oX,ushort oY,ushort oZ,ushort dX,ushort dY,ushort dZ,BlockType allow)//only traces x/y not depth
+        {
+            while (oX != dX || oY != dY || oZ != dZ)
+            {
+                if (oX - dX > 0)
+                {
+                    oX = (ushort)(oX - 1);
+                    if (blockList[oX, oY, oZ] != allow)
+                    {
+                        return false;
+                    }
+                }
+                else if (oX - dX < 0)
+                {
+                    oX = (ushort)(oX + 1);
+                    if (blockList[oX, oY, oZ] != allow)
+                    {
+                        return false;
+                    }
+                }
 
+                if (oZ - dZ > 0)
+                {
+                    oZ = (ushort)(oZ - 1);
+                    if (blockList[oX, oY, oZ] != allow)
+                    {
+                        return false;
+                    }
+                }
+                else if (oZ - dZ < 0)
+                {
+                    oZ = (ushort)(oZ + 1);
+                    if (blockList[oX, oY, oZ] != allow)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
         public bool RayCollision(Vector3 startPosition, Vector3 rayDirection, float distance, int searchGranularity, ref Vector3 hitPoint, ref Vector3 buildPoint)
         {
             Vector3 testPos = startPosition;
@@ -2713,6 +2984,32 @@ namespace Infiniminer
             }
         }
 
+        public void GetItem(Player player,string ID)
+        {
+            if (player.Alive)
+            {
+                
+                foreach (KeyValuePair<string, Item> bPair in itemList)
+                {
+                    if (bPair.Value.ID == ID)
+                    {
+                       
+                        if (Distf(player.Position, bPair.Value.Position) < 1.0)
+                        {
+                            itemList.Remove(bPair.Key);
+                            SendSetItem(bPair.Key);
+                            player.Cash = player.Cash + 5;
+                            DepositCash(player);
+                        }
+
+                        foreach (Player p in playerList.Values)
+                            SendResourceUpdate(p);
+
+                        return;
+                    }
+                }
+            }
+        }
         public void DepositCash(Player player)
         {
             if (player.Cash <= 0)
@@ -2891,12 +3188,12 @@ namespace Infiniminer
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
 
-        public void SendSetItem(Vector3 position, string text, PlayerTeam team, Vector3 heading)
+        public void SendSetItem(string text, Vector3 position, PlayerTeam team, Vector3 heading)
         {
             NetBuffer msgBuffer = netServer.CreateBuffer();
             msgBuffer.Write((byte)InfiniminerMessage.SetItem);
-            msgBuffer.Write(position);
             msgBuffer.Write(text);
+            msgBuffer.Write(position);
             msgBuffer.Write((byte)team);
             msgBuffer.Write(heading);
 
@@ -2904,7 +3201,16 @@ namespace Infiniminer
                 if (netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
         }
+        public void SendSetItem(string text)//empty item with no heading
+        {
+            NetBuffer msgBuffer = netServer.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.SetItemRemove);
+            msgBuffer.Write(text);
 
+            foreach (NetConnection netConn in playerList.Keys)
+                if (netConn.Status == NetConnectionStatus.Connected)
+                    netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
+        }
         public void SendPlayerJoined(Player player)
         {
             NetBuffer msgBuffer;
@@ -2930,15 +3236,15 @@ namespace Infiniminer
             }
 
             // Let this player know about all placed beacons.
-            foreach (KeyValuePair<Vector3, Item> bPair in itemList)
+            foreach (KeyValuePair<string, Item> bPair in itemList)
             {
-                Vector3 position = bPair.Key;
+                Vector3 position = bPair.Value.Position;
                 Vector3 heading = bPair.Value.Heading;
                 position.Y += 1; //fixme
                 msgBuffer = netServer.CreateBuffer();
                 msgBuffer.Write((byte)InfiniminerMessage.SetItem);
+                msgBuffer.Write(bPair.Key);
                 msgBuffer.Write(position);
-                msgBuffer.Write(bPair.Value.ID);
                 msgBuffer.Write((byte)bPair.Value.Team);
                 msgBuffer.Write(heading);
 

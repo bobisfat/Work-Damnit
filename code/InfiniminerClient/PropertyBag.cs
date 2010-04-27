@@ -38,6 +38,8 @@ namespace Infiniminer
         public Camera playerCamera = null;
         public Vector3 playerPosition = Vector3.Zero;
         public Vector3 playerVelocity = Vector3.Zero;
+        public Vector3 lastPosition = Vector3.Zero;
+        public Vector3 lastHeading = Vector3.Zero;
         public PlayerClass playerClass;
         public PlayerTools[] playerTools = new PlayerTools[1] { PlayerTools.Pickaxe };
         public int playerToolSelected = 0;
@@ -72,7 +74,7 @@ namespace Infiniminer
         public uint teamBlueCash = 0;
         public PlayerTeam teamWinners = PlayerTeam.None;
         public Dictionary<Vector3, Beacon> beaconList = new Dictionary<Vector3, Beacon>();
-        public Dictionary<Vector3, Item> itemList = new Dictionary<Vector3, Item>();
+        public Dictionary<string, Item> itemList = new Dictionary<string, Item>();
 
         // Screen effect stuff.
         private Random randGen = new Random();
@@ -172,6 +174,15 @@ namespace Infiniminer
             sw.Close();
             fs.Close();
             addChatMessage("Map saved to " + filename, ChatMessageType.SayAll, 10f);//DateTime.Now.ToUniversalTime());
+        }
+
+        public void GetItem(string ID)
+        {
+            NetBuffer msgBuffer = netClient.CreateBuffer();
+            msgBuffer.Write((byte)InfiniminerMessage.GetItem);
+            msgBuffer.Write(playerPosition);//also sends player locational data for range check
+            msgBuffer.Write(ID);
+            netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
 
         public void KillPlayer(string deathMessage)
@@ -750,7 +761,7 @@ namespace Infiniminer
                 case PlayerTools.ConstructionGun: return 0.5f;
                 case PlayerTools.DeconstructionGun: return 0.5f;
                 case PlayerTools.ProspectingRadar: return 0.5f;
-                case PlayerTools.SpawnItem: return 0.5f;
+                case PlayerTools.SpawnItem: return 0.05f;
                 default: return 0;
             }
         }
@@ -760,13 +771,46 @@ namespace Infiniminer
             if (netClient.Status != NetConnectionStatus.Connected)
                 return;
 
-            NetBuffer msgBuffer = netClient.CreateBuffer();
-            msgBuffer.Write((byte)InfiniminerMessage.PlayerUpdate);
-            msgBuffer.Write(playerPosition);
-            msgBuffer.Write(playerCamera.GetLookVector());
-            msgBuffer.Write((byte)playerTools[playerToolSelected]);
-            msgBuffer.Write(playerToolCooldown > 0.001f);
-            netClient.SendMessage(msgBuffer, NetChannel.UnreliableInOrder1);
+            if (lastPosition != playerPosition)//do full network update
+            {
+                lastPosition = playerPosition;
+
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerUpdate);//full
+                msgBuffer.Write(playerPosition);
+                msgBuffer.Write(playerCamera.GetLookVector());
+                msgBuffer.Write((byte)playerTools[playerToolSelected]);
+                msgBuffer.Write(playerToolCooldown > 0.001f);
+                netClient.SendMessage(msgBuffer, NetChannel.UnreliableInOrder1);
+            }
+            else if(lastHeading != playerCamera.GetLookVector())
+            {
+                lastHeading = playerCamera.GetLookVector();
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerUpdate1);//just heading
+                msgBuffer.Write(lastHeading);
+                msgBuffer.Write((byte)playerTools[playerToolSelected]);
+                msgBuffer.Write(playerToolCooldown > 0.001f);
+                netClient.SendMessage(msgBuffer, NetChannel.UnreliableInOrder1);
+            }
+            else
+            {
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerUpdate2);//just tools
+                msgBuffer.Write((byte)playerTools[playerToolSelected]);
+                msgBuffer.Write(playerToolCooldown > 0.001f);
+                netClient.SendMessage(msgBuffer, NetChannel.UnreliableInOrder1);
+            }
+        }
+        public void SendPlayerHurt()
+        {
+            if (netClient.Status != NetConnectionStatus.Connected)
+                return;
+
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerHurt);
+                msgBuffer.Write(playerHealth);
+                netClient.SendMessage(msgBuffer, NetChannel.ReliableInOrder1);
         }
     }
 }

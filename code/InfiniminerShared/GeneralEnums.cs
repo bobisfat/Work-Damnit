@@ -93,19 +93,23 @@ namespace Infiniminer
         TriggerExplosion,       // position
 
         PlayerUpdate,           // (uint id for server), position, heading, current tool, animate using (bool): UnreliableInOrder1
+        PlayerUpdate1,           // minus position
+        PlayerUpdate2,           // minus heading
         PlayerJoined,           // uint id, player name :ReliableInOrder2
         PlayerLeft,             // uint id              :ReliableInOrder2
         PlayerSetTeam,          // (uint id for server), byte team   :ReliableInOrder2
         PlayerDead,             // (uint id for server) :ReliableInOrder2
         PlayerAlive,            // (uint id for server) :ReliableInOrder2
         PlayerPing,             // uint id
-
+        PlayerHurt,             // allows client to tell server of damage
         ChatMessage,            // byte type, string message : ReliableInOrder3
         GameOver,               // byte team
         PlaySound,              // byte sound, bool isPositional, ?Vector3 location : ReliableUnordered
         TriggerConstructionGunAnimation,
         SetBeacon,              // vector3 position, string text ("" means remove)
         SetItem,
+        GetItem,
+        SetItemRemove,
     }
 
     public enum ChatMessageType

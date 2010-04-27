@@ -24,6 +24,7 @@ namespace Infiniminer
         float volumeLevel = 1.0f;
         NetBuffer msgBuffer = null;
         Song songTitle = null;
+        const float NETWORK_UPDATE_TIME = 0.025f;//usually 0.05
 
         public bool RenderPretty = true;
         public bool DrawFrameRate = false;
@@ -128,11 +129,13 @@ namespace Infiniminer
         {
             // Update the server with our status.
             timeSinceLastUpdate += gameTime.ElapsedGameTime.TotalSeconds;
-            if (timeSinceLastUpdate > 0.05)
+            if (timeSinceLastUpdate > NETWORK_UPDATE_TIME)
             {
                 timeSinceLastUpdate = 0;
                 if (CurrentStateType == "Infiniminer.States.MainGameState")
+                {
                     propertyBag.SendPlayerUpdate();
+                }
             }
 
             // Recieve messages from the server.
@@ -263,27 +266,25 @@ namespace Infiniminer
                                         break;
                                     case InfiniminerMessage.SetItem:
                                         {
-                                            Vector3 position = msgBuffer.ReadVector3();
-                                            string text = msgBuffer.ReadString();
-                                            PlayerTeam team = (PlayerTeam)msgBuffer.ReadByte();
-                                            Vector3 heading = msgBuffer.ReadVector3();
-                                            if (text == "")
-                                            {
-                                                if (propertyBag.beaconList.ContainsKey(position))
-                                                    propertyBag.beaconList.Remove(position);
-                                            }
-                                            else
-                                            {
-                                               // propertyBag.playerList[playerId] = new Player(null, (Game)this);
-                                                Item newItem = new Item((Game)this);
-                                                newItem.ID = text;
-                                                newItem.Team = team;
-                                                newItem.Heading = heading;
-                                                propertyBag.itemList.Add(position, newItem);
-                                            }
+                                            Item newItem = new Item((Game)this);
+                                            newItem.ID = msgBuffer.ReadString();
+                                            newItem.Position = msgBuffer.ReadVector3();
+                                            newItem.Team = (PlayerTeam)msgBuffer.ReadByte();
+                                            newItem.Heading = msgBuffer.ReadVector3();
+                                           
+                                            propertyBag.itemList.Add(newItem.ID, newItem);
                                         }
                                         break;
-
+                                    case InfiniminerMessage.SetItemRemove:
+                                        {
+                                            string text = msgBuffer.ReadString();
+                                          
+                                            if (propertyBag.itemList.ContainsKey(text))
+                                                propertyBag.itemList.Remove(text);
+                                           
+                                        }
+                                        break;
+    
                                     case InfiniminerMessage.TriggerConstructionGunAnimation:
                                         {
                                             propertyBag.constructionGunAnimation = msgBuffer.ReadFloat();
@@ -512,7 +513,9 @@ namespace Infiniminer
             graphicsDeviceManager.IsFullScreen = false;
             graphicsDeviceManager.PreferredBackBufferWidth = 1024;
             graphicsDeviceManager.PreferredBackBufferHeight = 768;
+            graphicsDeviceManager.SynchronizeWithVerticalRetrace = true;
             graphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
+            this.IsFixedTimeStep = false;
 
             //Now moving to DatafileWriter only since it can read and write
             DatafileWriter dataFile = new DatafileWriter("client.config.txt");

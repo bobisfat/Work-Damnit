@@ -20,7 +20,9 @@ namespace Infiniminer
         public string ID;
         public PlayerTeam Team;
         public Vector3 Heading;
+        public Vector3 Position;
         public int Type;
+        public DateTime Frozen;//frozen until greater than this time
 
         public bool QueueAnimationBreak = false;
 
@@ -30,6 +32,8 @@ namespace Infiniminer
 
         public Item(Game gameInstance)
         {
+            Frozen = DateTime.Now;
+            
             this.gameInstance = gameInstance;
             if (gameInstance != null)
             {

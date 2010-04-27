@@ -64,15 +64,15 @@ namespace Infiniminer
                 }
             }
 
-            foreach (KeyValuePair<Vector3, Item> i in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
+            foreach (KeyValuePair<string, Item> i in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
             {
                     i.Value.SpriteModel.Draw(_P.playerCamera.ViewMatrix,
                                        _P.playerCamera.ProjectionMatrix,
                                        _P.playerCamera.Position,
                                        _P.playerCamera.GetLookVector(),
-                                       i.Key - Vector3.UnitY * 1.5f,
+                                       i.Value.Position - Vector3.UnitY * 1.5f,//* 1.5f probably not helpful
                                        i.Value.Heading,
-                                       2);
+                                       2); 
             }
         }
 
