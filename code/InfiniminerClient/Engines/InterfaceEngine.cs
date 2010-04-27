@@ -454,6 +454,13 @@ namespace Infiniminer
                 if (_P.screenEffectCounter > 2)
                     _P.screenEffect = ScreenEffect.None;
             }
+            if (_P.screenEffect == ScreenEffect.Drown)
+            {
+                Color drawColor = new Color(0, 0, 1, 1 - (float)_P.screenEffectCounter * 0.5f);
+                spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
+                if (_P.screenEffectCounter > 2)
+                    _P.screenEffect = ScreenEffect.None;
+            }
 
             // Draw the help screen.
             if (Keyboard.GetState().IsKeyDown(Keys.F1))
