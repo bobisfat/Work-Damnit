@@ -132,8 +132,7 @@ namespace Infiniminer.States
                 if(_P.blockEngine.BlockAtPoint(footPosition) == BlockType.Water || _P.blockEngine.BlockAtPoint(headPosition) == BlockType.Water || _P.blockEngine.BlockAtPoint(midPosition) == BlockType.Water) 
                 {
                     swimming = true;
-                    _P.playerHoldBreath -= (int)gameTime.ElapsedGameTime.TotalSeconds;
-                    _P.addChatMessage("Breath held.." + (int)gameTime.ElapsedGameTime.TotalSeconds, ChatMessageType.SayAll, 10);
+                    _P.playerHoldBreath -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                 }
                 else
 	            {
@@ -147,7 +146,7 @@ namespace Infiniminer.States
             {
                 TimeSpan timeSpan = DateTime.Now - _P.lastBreath;
                 _P.playerVelocity.Y += (GRAVITY/8) * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                if (timeSpan.TotalMilliseconds > 500)
+                if (timeSpan.TotalMilliseconds > 1000)
                 {
                     //_P.addChatMessage("Breath held.." + _P.playerHoldBreath, ChatMessageType.SayAll, 10);
                     if (_P.playerHoldBreath <= 10)
@@ -157,12 +156,12 @@ namespace Infiniminer.States
                         {
                             _P.playerHealth -= (uint)(9 - _P.playerHoldBreath) * 10;
                             _P.lastBreath = DateTime.Now;
+                            _P.screenEffectCounter = 0.5;
                         }
                         else
                         {
                             _P.playerHealth = 0;
                         }
-                        _P.screenEffectCounter = (9 - _P.playerHoldBreath) * 4;
                         _P.PlaySoundForEveryone(InfiniminerSound.Death, _P.playerPosition);
                     }
                 }
