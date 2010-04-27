@@ -2194,6 +2194,20 @@ namespace Infiniminer
                         }
         }
 
+        public void DoSpringStuff()
+        {
+            for (ushort i = 0; i < MAPSIZE; i++)
+                for (ushort j = 0; j < MAPSIZE; j++)
+                    for (ushort k = 0; k < MAPSIZE; k++)
+                        if (blockList[i, j, k] == BlockType.Spring)
+                        {
+                            if (blockList[i, j - 1, k] == BlockType.None)
+                            {
+                                SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);
+                            }
+                        }
+        }
+
         public void DoPumpStuff()
         {
             bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
@@ -2877,6 +2891,7 @@ namespace Infiniminer
                                 case BlockType.Jump:
                                 case BlockType.Explosive:
                                 case BlockType.Lava:
+                                case BlockType.Spring:
                                 case BlockType.Road:
                                     destroyBlock = true;
                                     break;
@@ -2923,6 +2938,7 @@ namespace Infiniminer
                                     case BlockType.Jump:
                                     case BlockType.Explosive:
                                     case BlockType.Lava:
+                                    case BlockType.Spring:
                                     case BlockType.Road:
                                         destroyBlock = true;
                                         break;

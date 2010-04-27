@@ -179,6 +179,7 @@ namespace Infiniminer
             blockTextures[(byte)BlockTexture.Controller] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_controller"));
             blockTextures[(byte)BlockTexture.Pipe] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_pipe"));
             blockTextures[(byte)BlockTexture.Pump] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_pump"));
+            blockTextures[(byte)BlockTexture.Spring] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_spring"));
 
             // Load our effects.
             basicEffect = gameInstance.Content.Load<Effect>("effect_basic");
