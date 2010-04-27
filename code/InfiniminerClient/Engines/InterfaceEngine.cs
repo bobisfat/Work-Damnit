@@ -421,8 +421,8 @@ namespace Infiniminer
                     RenderRadarBlip(spriteBatch, bPair.Key, Color.White, false, bPair.Value.ID);
             RenderRadarBlip(spriteBatch, new Vector3(100000, 0, 32), Color.White, false, "NORTH");
 
-            foreach (KeyValuePair<string, Item> bPair in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
-                    RenderRadarBlip(spriteBatch, bPair.Value.Position, Color.Magenta, false, bPair.Value.ID);
+           // foreach (KeyValuePair<string, Item> bPair in _P.itemList)//  if (bPair.Value.Team == _P.playerTeam)//doesnt care which team
+            //        RenderRadarBlip(spriteBatch, bPair.Value.Position, Color.Magenta, false, bPair.Value.ID);
 
             spriteBatch.Draw(texRadarForeground, new Vector2(10, 30), Color.White);
 
@@ -455,12 +455,22 @@ namespace Infiniminer
                 if (_P.screenEffectCounter > 2)
                     _P.screenEffect = ScreenEffect.None;
             }
-            if (_P.screenEffect == ScreenEffect.Drown)
+            if (_P.screenEffect == ScreenEffect.Water)
             {
-                Color drawColor = new Color(0, 0, 1, 1 - (float)_P.screenEffectCounter * 0.5f);
+                Color drawColor = new Color(0, 0, 1, 1 - (float)_P.screenEffectCounter);
                 spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
                 if (_P.screenEffectCounter > 2)
                     _P.screenEffect = ScreenEffect.None;
+            }
+            if (_P.screenEffect == ScreenEffect.Drown)
+            {
+                Color drawColor = new Color(0.5f, 0, 0.8f, 0.25f + (float)_P.screenEffectCounter*0.2f);
+                spriteBatch.Draw(texBlank, new Rectangle(0, 0, graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height), drawColor);
+                if (_P.screenEffectCounter > 2)
+                {
+                    _P.screenEffect = ScreenEffect.Water;
+                    _P.screenEffectCounter = 1;
+                }
             }
 
             // Draw the help screen.

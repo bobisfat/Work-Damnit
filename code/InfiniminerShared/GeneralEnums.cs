@@ -60,6 +60,7 @@ namespace Infiniminer
         Fall,
         Explosion,
         Drown,
+        Water,
     }
 
     public enum InfiniminerSound
