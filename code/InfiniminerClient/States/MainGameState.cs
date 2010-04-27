@@ -134,6 +134,10 @@ namespace Infiniminer.States
                     swimming = true;
                     if (_P.blockEngine.BlockAtPoint(headPosition) == BlockType.Water)
                     {
+                        if (_P.playerHoldBreath == 20)
+                        {
+                            _P.playerVelocity.Y *= 0.2f;
+                        }
                         _P.playerHoldBreath -= (float)gameTime.ElapsedGameTime.TotalSeconds;
                     }
                     else
