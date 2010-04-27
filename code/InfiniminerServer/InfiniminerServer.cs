@@ -2211,22 +2211,12 @@ namespace Infiniminer
 
         public void DoPumpStuff()
         {
-            bool[, ,] flowSleep = new bool[MAPSIZE, MAPSIZE, MAPSIZE]; //if true, do not calculate this turn
-
-            //for (ushort i = 0; i < MAPSIZE; i++)
-            //    for (ushort j = 0; j < MAPSIZE; j++)
-            //        for (ushort k = 0; k < MAPSIZE; k++)
-            //            flowSleep[i, j, k] = false;
-
+        
             for (ushort i = 0; i < MAPSIZE; i++)
                 for (ushort j = 0; j < MAPSIZE; j++)
                     for (ushort k = 0; k < MAPSIZE; k++)
-                        if (blockList[i, j, k] == BlockType.Pump && !flowSleep[i, j, k])
+                        if (blockList[i, j, k] == BlockType.Pump)
                         {
-                            //if (j > 0 && blockList[i, j - 1, k] == BlockType.None)//TEMPORARY FOR WATER GENERATION
-                            //{//TEMPORARY FOR WATER GENERATION
-                            //    SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);//TEMPORARY FOR WATER GENERATION
-                            //}//TEMPORARY FOR WATER GENERATION
                             BlockType pumpheld = BlockType.None;
                             for (int a = -1; a < 2; a++)
                             {
@@ -2244,13 +2234,13 @@ namespace Infiniminer
                                             {
                                                 pumpheld = BlockType.Water;
                                                 SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                                                flowSleep[i + a, j + b, k + c] = true;
+                                                //flowSleep[i + a, j + b, k + c] = true;
                                             }
                                             if (i > 0 && blockList[i + a, j + b, k + c] == BlockType.Lava)
                                             {
                                                 pumpheld = BlockType.Lava;
                                                 SetBlock((ushort)(i + a), (ushort)(j + b), (ushort)(k + c), BlockType.None, PlayerTeam.None);
-                                                flowSleep[i + a, j + b, k + c] = true;
+                                                //flowSleep[i + a, j + b, k + c] = true;
                                             }
                                         }
                                     }

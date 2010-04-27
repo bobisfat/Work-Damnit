@@ -24,7 +24,7 @@ namespace Infiniminer
         float volumeLevel = 1.0f;
         NetBuffer msgBuffer = null;
         Song songTitle = null;
-        const float NETWORK_UPDATE_TIME = 0.025f;//usually 0.05
+        const float NETWORK_UPDATE_TIME = 0.05f;
 
         public bool RenderPretty = true;
         public bool DrawFrameRate = false;
