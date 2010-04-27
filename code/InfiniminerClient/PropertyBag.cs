@@ -52,6 +52,8 @@ namespace Infiniminer
         public uint playerWeight = 0;
         public uint playerOreMax = 0;
         public uint playerWeightMax = 0;
+        public int playerHoldBreath = 20;
+        public DateTime lastBreath = DateTime.Now;
         public bool playerRadarMute = false;
         public float playerToolCooldown = 0;
         public string playerHandle = "Player";

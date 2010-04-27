@@ -132,17 +132,47 @@ namespace Infiniminer.States
                 if(_P.blockEngine.BlockAtPoint(footPosition) == BlockType.Water || _P.blockEngine.BlockAtPoint(headPosition) == BlockType.Water || _P.blockEngine.BlockAtPoint(midPosition) == BlockType.Water) 
                 {
                     swimming = true;
+                    _P.playerHoldBreath -= (int)gameTime.ElapsedGameTime.TotalSeconds;
+                    _P.addChatMessage("Breath held.." + (int)gameTime.ElapsedGameTime.TotalSeconds, ChatMessageType.SayAll, 10);
                 }
                 else
 	            {
                     swimming = false;
+                    _P.playerHoldBreath = 20;
 	            }
          //   }
 
-            // Apply "gravity".
+            // 
             if (swimming)
             {
+                TimeSpan timeSpan = DateTime.Now - _P.lastBreath;
                 _P.playerVelocity.Y += (GRAVITY/8) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (timeSpan.TotalMilliseconds > 500)
+                {
+                    //_P.addChatMessage("Breath held.." + _P.playerHoldBreath, ChatMessageType.SayAll, 10);
+                    if (_P.playerHoldBreath <= 10)
+                    {
+                        _P.screenEffect = ScreenEffect.Fall;
+                        if (((int)_P.playerHealth - ((9 - _P.playerHoldBreath) * 10)) > 0)
+                        {
+                            _P.playerHealth -= (uint)(9 - _P.playerHoldBreath) * 10;
+                            _P.lastBreath = DateTime.Now;
+                        }
+                        else
+                        {
+                            _P.playerHealth = 0;
+                        }
+                        _P.screenEffectCounter = (9 - _P.playerHoldBreath) * 4;
+                        _P.PlaySoundForEveryone(InfiniminerSound.Death, _P.playerPosition);
+                    }
+                }
+
+                    if (_P.playerHealth <= 0)
+                    {
+                        _P.KillPlayer(Defines.deathByFall);
+                    }
+
+                    _P.SendPlayerUpdate();
             }
             else
             {
@@ -158,21 +188,21 @@ namespace Infiniminer.States
                 if (standingOnBlock != BlockType.None && _P.playerVelocity.Y < 0)
                 {
                     float fallDamage = Math.Abs(_P.playerVelocity.Y) / DIEVELOCITY;
-                    if (fallDamage >= 1)
+                    if (fallDamage > 0.5)
                     {
-                        _P.PlaySoundForEveryone(InfiniminerSound.GroundHit, _P.playerPosition);
-                        _P.KillPlayer(Defines.deathByFall);//"WAS KILLED BY GRAVITY!");
-                        return;
-                    }
-                    else if (fallDamage > 0.5)
-                    {
+                    //    _P.PlaySoundForEveryone(InfiniminerSound.GroundHit, _P.playerPosition);
+                    //    _P.KillPlayer(Defines.deathByFall);//"WAS KILLED BY GRAVITY!");
+                    //    return;
+                    //}
+                    //else if (fallDamage > 0.5)
+                    //{
                         // Fall damage of 0.5 maps to a screenEffectCounter value of 2, meaning that the effect doesn't appear.
                         // Fall damage of 1.0 maps to a screenEffectCounter value of 0, making the effect very strong.
                         if (standingOnBlock != BlockType.Jump)
                         {
                             _P.screenEffect = ScreenEffect.Fall;
-                            if (((int)_P.playerHealth - (fallDamage*50)) > 0) {
-                                _P.playerHealth -= (uint)(fallDamage*50);
+                            if (((int)_P.playerHealth - (fallDamage*100)) > 0) {
+                                _P.playerHealth -= (uint)(fallDamage*100);
                             } else {
                                 _P.playerHealth = 0;
                             }
