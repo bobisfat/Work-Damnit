@@ -2223,10 +2223,10 @@ namespace Infiniminer
                     for (ushort k = 0; k < MAPSIZE; k++)
                         if (blockList[i, j, k] == BlockType.Pump && !flowSleep[i, j, k])
                         {
-                            if (j > 0 && blockList[i, j - 1, k] == BlockType.None)//TEMPORARY FOR WATER GENERATION
-                            {//TEMPORARY FOR WATER GENERATION
-                                SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);//TEMPORARY FOR WATER GENERATION
-                            }//TEMPORARY FOR WATER GENERATION
+                            //if (j > 0 && blockList[i, j - 1, k] == BlockType.None)//TEMPORARY FOR WATER GENERATION
+                            //{//TEMPORARY FOR WATER GENERATION
+                            //    SetBlock(i, (ushort)(j - 1), k, BlockType.Water, PlayerTeam.None);//TEMPORARY FOR WATER GENERATION
+                            //}//TEMPORARY FOR WATER GENERATION
                             BlockType pumpheld = BlockType.None;
                             for (int a = -1; a < 2; a++)
                             {
