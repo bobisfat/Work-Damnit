@@ -2013,6 +2013,7 @@ namespace Infiniminer
                     DoLavaStuff();
                     DoWaterStuff();
                     DoPumpStuff();
+                    DoSpringStuff();
 
                     lastFlowCalc = DateTime.Now;
 
