@@ -71,7 +71,7 @@ namespace Infiniminer
         {
             BlockType testpoint = BlockAtPoint(pos);
 
-            if (testpoint == BlockType.None || testpoint == BlockType.Fire || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava|| testpoint == BlockType.StealthBlockB && pl.Team == PlayerTeam.Blue  || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.StealthBlockR && pl.Team == PlayerTeam.Red || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
+            if (testpoint == BlockType.None || testpoint == BlockType.Fire || testpoint == BlockType.Vacuum || testpoint == BlockType.Water || testpoint == BlockType.Lava || testpoint == BlockType.StealthBlockB && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TransBlue && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TrapR && pl.Team == PlayerTeam.Blue || testpoint == BlockType.TrapB && pl.Team == PlayerTeam.Red || testpoint == BlockType.StealthBlockR && pl.Team == PlayerTeam.Red || testpoint == BlockType.TransRed && pl.Team == PlayerTeam.Red)
             {//check if player is not in wall
                //falldamage
                 if (testpoint == BlockType.Fire)
@@ -3059,6 +3059,14 @@ namespace Infiniminer
                     removeBlock = true;
                     sound = InfiniminerSound.DigDirt;
                     break;
+                case BlockType.TrapB:
+                    removeBlock = true;
+                    sound = InfiniminerSound.DigDirt;
+                    break;
+                case BlockType.TrapR:
+                    removeBlock = true;
+                    sound = InfiniminerSound.DigDirt;
+                    break;
                 case BlockType.Ore:
                     removeBlock = true;
                     giveOre = 20;
@@ -3300,7 +3308,9 @@ namespace Infiniminer
                 blockType == BlockType.Controller ||
                 blockType == BlockType.Water ||
                 blockType == BlockType.StealthBlockB ||
-                blockType == BlockType.StealthBlockR
+                blockType == BlockType.StealthBlockR ||
+                blockType == BlockType.TrapB ||
+                blockType == BlockType.TrapR 
                 ))
                 actionFailed = true;
 
@@ -3428,6 +3438,8 @@ namespace Infiniminer
                                 case BlockType.Lava:
                                 case BlockType.StealthBlockB:
                                 case BlockType.StealthBlockR:
+                                case BlockType.TrapR:
+                                case BlockType.TrapB:
                                 case BlockType.Road:
                                     destroyBlock = true;
                                     break;
@@ -3477,6 +3489,8 @@ namespace Infiniminer
                                     case BlockType.Explosive:
                                     case BlockType.Lava:
                                     case BlockType.Road:
+                                    case BlockType.TrapR:
+                                    case BlockType.TrapB:
                                     case BlockType.StealthBlockB:
                                     case BlockType.StealthBlockR:
                                         destroyBlock = true;

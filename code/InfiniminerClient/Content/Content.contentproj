@@ -860,7 +860,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
-  </ItemGroup>	  
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="blocks\tex_block_dirt_trans.png">
       <Name>tex_block_dirt_trans</Name>
@@ -871,6 +871,20 @@
   <ItemGroup>
     <Compile Include="blocks\tex_block_magma.png">
       <Name>tex_block_magma</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="icons\tex_icon_stealth.png">
+      <Name>tex_icon_stealth</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="blocks\tex_block_trapVis.png">
+      <Name>tex_block_trapVis</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

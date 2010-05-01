@@ -187,6 +187,8 @@ namespace Infiniminer
             blockTextures[(byte)BlockTexture.Fire] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_fire"));
             blockTextures[(byte)BlockTexture.StealthBlockR] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt_trans"));
             blockTextures[(byte)BlockTexture.StealthBlockB] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt_trans"));
+            blockTextures[(byte)BlockTexture.Trap] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt"));
+            blockTextures[(byte)BlockTexture.TrapVis] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_trapVis"));
             blockTextures[(byte)BlockTexture.Magma] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_magma"));
 
             // Load our effects.
@@ -227,9 +229,9 @@ namespace Infiniminer
         {
             if (blockType == BlockType.None)
                 return true;
-            if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red && (blockType == BlockType.TransRed || blockType == BlockType.StealthBlockR))
+            if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red && (blockType == BlockType.TransRed || blockType == BlockType.StealthBlockR || blockType == BlockType.TrapB))
                 return true;
-            if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue && (blockType == BlockType.TransBlue || blockType == BlockType.StealthBlockB))
+            if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue && (blockType == BlockType.TransBlue || blockType == BlockType.StealthBlockB|| blockType == BlockType.TrapR))
                 return true;
             if (blockType == BlockType.Fire)
                 return true;
@@ -276,12 +278,8 @@ namespace Infiniminer
                 {
                     // Figure out if we should be rendering translucently.
                     bool renderTranslucent = false;
-                    if (blockTexture == BlockTexture.TransRed || blockTexture == BlockTexture.TransBlue || blockTexture == BlockTexture.Water)
-                        renderTranslucent = true;
-
-                    if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red && blockTexture == BlockTexture.StealthBlockR)
-                        renderTranslucent = true;
-                    if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue && blockTexture == BlockTexture.StealthBlockB)
+                                      
+                    if (blockTexture == BlockTexture.TransRed || blockTexture == BlockTexture.TransBlue || blockTexture == BlockTexture.Water || (gameInstance.propertyBag.playerTeam == PlayerTeam.Red && blockTexture == BlockTexture.StealthBlockR) || (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue && blockTexture == BlockTexture.StealthBlockB))
                         renderTranslucent = true;
 
                     // If this is empty, don't render it.
@@ -522,7 +520,7 @@ namespace Infiniminer
         {
             BlockType type = blockList[x, y, z];
             BlockType type2 = blockList[x2, y2, z2];
-            if (type2 != BlockType.None && type != BlockType.TransRed && type != BlockType.TransBlue && type != BlockType.Water && type2 != BlockType.TransRed && type2 != BlockType.TransBlue && type2 != BlockType.Water)
+            if (type2 != BlockType.None && type != BlockType.TransRed && type != BlockType.TransBlue && type != BlockType.Water && type != BlockType.StealthBlockB && type != BlockType.StealthBlockR && type2 != BlockType.TransRed && type2 != BlockType.TransBlue && type2 != BlockType.Water && type2 != BlockType.StealthBlockB && type2 != BlockType.StealthBlockR)
                 ShowQuad((ushort)x2, (ushort)y2, (ushort)z2, dir2, type2);
             else
                 HideQuad(x, y, z, dir, type);

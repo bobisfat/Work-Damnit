@@ -41,6 +41,8 @@ namespace Infiniminer
         MagmaVent,
         Fire,
         Vacuum,
+        TrapB,
+        TrapR,
         StealthBlockR,
         StealthBlockB,
         Magma,
@@ -99,6 +101,8 @@ namespace Infiniminer
         Fire,
         Water,
         Magma,
+        Trap,
+        TrapVis,
         StealthBlockR,
         StealthBlockB,
         TransRed,   // THESE MUST BE THE LAST TWO TEXTURES
@@ -141,6 +145,8 @@ namespace Infiniminer
                 case BlockType.Pipe:
                 case BlockType.StealthBlockB:
                 case BlockType.StealthBlockR:
+                case BlockType.TrapB:
+                case BlockType.TrapR:
                     return 10;
 
                 case BlockType.TransRed:
@@ -215,6 +221,18 @@ namespace Infiniminer
                     return BlockTexture.StealthBlockR;
                 case BlockType.StealthBlockB:
                     return BlockTexture.StealthBlockB;
+                case BlockType.TrapB:
+                    //if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red) {
+                    //return BlockTexture.Trap; }
+                    //else if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue == PlayerTeam.Blue)
+                    //{
+                    //return BlockTexture.TrapVis;}
+                case BlockType.TrapR:
+                   //if (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue) {
+                    //return BlockTexture.Trap; } 
+                    //else if (gameInstance.propertyBag.playerTeam == PlayerTeam.Red) {
+                    //    return BlockTexture.TrapVis;
+                    //}
 
                 case BlockType.BankRed:
                     switch (faceDir)
