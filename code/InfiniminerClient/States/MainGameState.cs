@@ -237,6 +237,23 @@ namespace Infiniminer.States
 
                 if (_P.blockEngine.SolidAtPointForPlayer(midPosition))
                 {
+                    //float size = 0.1f;
+                    //bool allow = false;
+                    //for (int x = -1; x < 2; x++)
+                    //    for (int y = -1; y < 2; y++)
+                    //        for (int z = -1; z < 2; z++)
+                    //        {
+                    //            Vector3 box = new Vector3(size * x, size * y, size * z);
+                    //            if (!_P.blockEngine.SolidAtPointForPlayer(midPosition + box))
+                    //            {
+                    //                allow = true;
+                    //                y = 2;
+                    //                x = 2;
+                    //                break;
+                    //            }
+                    //        }
+
+                    //if(allow == false)
                         _P.KillPlayer(Defines.deathByCrush);//may not be reliable enough to kill players that get hit by sand
                 }
                 // If the player has their head stuck in a block, push them down.
@@ -368,45 +385,31 @@ namespace Infiniminer.States
 
                 // Attempt to move, doing collision stuff.
                 if (TryToMoveTo(moveVector, gameTime)) { }
-                else if (!TryToMoveTo(new Vector3(0, 0, moveVector.Z), gameTime)) { }
-                else if (!TryToMoveTo(new Vector3(moveVector.X, 0, 0), gameTime)) { }
+                else
+                {
+                    if (!TryToMoveTo(new Vector3(0, 0, moveVector.Z), gameTime)) { }
+                    if (!TryToMoveTo(new Vector3(moveVector.X, 0, 0), gameTime)) { }
+                }
             }
         }
 
         private bool TryToMoveTo(Vector3 moveVector, GameTime gameTime)
         {
-            // Build a "test vector" that is a little longer than the move vector.
+            // Build a "test vector" that is a little longer than the move vector.//yeah that was a great idea wasnt it
             float moveLength = moveVector.Length();
             Vector3 testVector = moveVector;
             testVector.Normalize();
-            testVector = testVector * (moveLength + 0.1f);
+            testVector = testVector * (moveLength);// + 0.1f);
 
             // Apply this test vector.
             Vector3 movePosition = _P.playerPosition + testVector;
             Vector3 midBodyPoint = movePosition + new Vector3(0, -0.7f, 0);
             Vector3 lowerBodyPoint = movePosition + new Vector3(0, -1.4f, 0);
-            float size = 0.2f;
-            bool allow = true;
-            for (int x = -1; x < 2; x++)
-                for (int y = -1; y < 2; y++)
-                    for (int z = -1; z < 2; z++)
-                    {
-                        Vector3 box = new Vector3(size * x, size * y, size * z);
-                        if (_P.blockEngine.SolidAtPointForPlayer(movePosition + box))
-                        {
-                            allow = false;
-                            break;
-                        }
-                    }
 
             if (!_P.blockEngine.SolidAtPointForPlayer(movePosition) && !_P.blockEngine.SolidAtPointForPlayer(lowerBodyPoint) && !_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))
             {
-                if (allow == true)
-                {
-                    _P.playerPosition = _P.playerPosition + moveVector;
-
-                    return true;
-                }
+                _P.playerPosition = _P.playerPosition + moveVector;
+                return true;
             }
 
             // It's solid there, so while we can't move we have officially collided with it.
