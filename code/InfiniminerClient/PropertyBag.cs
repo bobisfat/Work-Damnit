@@ -463,10 +463,12 @@ namespace Infiniminer
             if (playerTeam == PlayerTeam.Red)
             {
                 blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
+                blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
             }
             else
             {
                 blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
+                blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
             }
         }
 

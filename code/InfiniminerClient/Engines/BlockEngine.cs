@@ -187,6 +187,7 @@ namespace Infiniminer
             blockTextures[(byte)BlockTexture.Fire] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_fire"));
             blockTextures[(byte)BlockTexture.StealthBlockR] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt_trans"));
             blockTextures[(byte)BlockTexture.StealthBlockB] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt_trans"));
+            blockTextures[(byte)BlockTexture.Trap] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt"));
             blockTextures[(byte)BlockTexture.TrapB] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt"));
             blockTextures[(byte)BlockTexture.TrapR] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_dirt"));
             blockTextures[(byte)BlockTexture.TrapVis] = new IMTexture(gameInstance.Content.Load<Texture2D>("blocks/tex_block_trapVis"));
