@@ -40,6 +40,9 @@ namespace Infiniminer
         MagmaVent,
         Fire,
         Vacuum,
+        StealthBlockR,
+        StealthBlockB,
+        Magma,
         MAXIMUM
     }
 
@@ -93,6 +96,9 @@ namespace Infiniminer
         MagmaVent,
         Fire,
         Water,
+        Magma,
+        StealthBlockR,
+        StealthBlockB,
         TransRed,   // THESE MUST BE THE LAST TWO TEXTURES
         TransBlue,
         MAXIMUM
@@ -130,6 +136,8 @@ namespace Infiniminer
                 case BlockType.Lava:
                 case BlockType.Dirt:
                 case BlockType.Pipe:
+                case BlockType.StealthBlockB:
+                case BlockType.StealthBlockR:
                     return 10;
 
                 case BlockType.TransRed:
@@ -196,6 +204,12 @@ namespace Infiniminer
                     return BlockTexture.Diamond;
                 case BlockType.DirtSign:
                     return BlockTexture.DirtSign;
+                case BlockType.Magma:
+                    return BlockTexture.Magma;
+                case BlockType.StealthBlockR:
+                    return BlockTexture.StealthBlockR;
+                case BlockType.StealthBlockB:
+                    return BlockTexture.StealthBlockB;
 
                 case BlockType.BankRed:
                     switch (faceDir)
