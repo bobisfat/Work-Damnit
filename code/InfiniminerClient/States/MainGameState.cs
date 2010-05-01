@@ -201,11 +201,7 @@ namespace Infiniminer.States
             {
                 BlockType standingOnBlock = _P.blockEngine.BlockAtPoint(footPosition);
                 BlockType hittingHeadOnBlock = _P.blockEngine.BlockAtPoint(headPosition);
-                BlockType crushedByBlock = _P.blockEngine.BlockAtPoint(midPosition);
-
-                //if(crushedByBlock == BlockType.Sand || crushedByBlock == BlockType.Dirt)
-                    //_P.KillPlayer(Defines.deathByCrush);
-
+                
                 // If we"re hitting the ground with a high velocity, die!
                 if (standingOnBlock != BlockType.None && _P.playerVelocity.Y < 0)
                 {
@@ -248,6 +244,7 @@ namespace Infiniminer.States
                 {
                     int blockIn = (int)(headPosition.Y);
                     _P.playerPosition.Y = (float)(blockIn - 0.15f);
+
                 }
 
                 // If the player is stuck in the ground, bring them out.
@@ -388,12 +385,28 @@ namespace Infiniminer.States
             Vector3 movePosition = _P.playerPosition + testVector;
             Vector3 midBodyPoint = movePosition + new Vector3(0, -0.7f, 0);
             Vector3 lowerBodyPoint = movePosition + new Vector3(0, -1.4f, 0);
-            //float size = 0.2f;
-            
+            float size = 0.2f;
+            bool allow = true;
+            for (int x = -1; x < 2; x++)
+                for (int y = -1; y < 2; y++)
+                    for (int z = -1; z < 2; z++)
+                    {
+                        Vector3 box = new Vector3(size * x, size * y, size * z);
+                        if (_P.blockEngine.SolidAtPointForPlayer(movePosition + box))
+                        {
+                            allow = false;
+                            break;
+                        }
+                    }
+
             if (!_P.blockEngine.SolidAtPointForPlayer(movePosition) && !_P.blockEngine.SolidAtPointForPlayer(lowerBodyPoint) && !_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))
             {
-                _P.playerPosition = _P.playerPosition + moveVector;
-                return true;
+                if (allow == true)
+                {
+                    _P.playerPosition = _P.playerPosition + moveVector;
+
+                    return true;
+                }
             }
 
             // It's solid there, so while we can't move we have officially collided with it.

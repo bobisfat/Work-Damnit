@@ -3966,6 +3966,7 @@ namespace Infiniminer
                 if (netConn != player.NetConn && netConn.Status == NetConnectionStatus.Connected)
                     netServer.SendMessage(msgBuffer, netConn, NetChannel.ReliableInOrder2);
 
+            SendPlayerRespawn(player);
             // Send this out just incase someone is joining at the last minute.
             if (winningTeam != PlayerTeam.None)
                 BroadcastGameOver();
