@@ -153,12 +153,14 @@ namespace Infiniminer
                 case BlockType.BeaconBlue:
                 case BlockType.BankBlue:
                 case BlockType.StealthBlockB:
+                case BlockType.TrapB:
                     return PlayerTeam.Blue;
                 case BlockType.TransRed:
                 case BlockType.SolidRed:
                 case BlockType.BeaconRed:
                 case BlockType.BankRed:
                 case BlockType.StealthBlockR:
+                case BlockType.TrapR:
                     return PlayerTeam.Red;
                 default:
                     return PlayerTeam.None;
