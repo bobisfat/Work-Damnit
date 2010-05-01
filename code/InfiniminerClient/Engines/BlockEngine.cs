@@ -280,7 +280,7 @@ namespace Infiniminer
                 {
                     // Figure out if we should be rendering translucently.
                     bool renderTranslucent = false;
-                                      
+
                     if (blockTexture == BlockTexture.TransRed || blockTexture == BlockTexture.TransBlue || blockTexture == BlockTexture.Water || (gameInstance.propertyBag.playerTeam == PlayerTeam.Red && blockTexture == BlockTexture.StealthBlockR) || (gameInstance.propertyBag.playerTeam == PlayerTeam.Blue && blockTexture == BlockTexture.StealthBlockB))
                         renderTranslucent = true;
 
@@ -497,7 +497,7 @@ namespace Infiniminer
         private void _AddBlock(ushort x, ushort y, ushort z, BlockFaceDirection dir, BlockType type, int x2, int y2, int z2, BlockFaceDirection dir2)
         {
             BlockType type2 = blockList[x2, y2, z2];
-            if (type2 != BlockType.None && type != BlockType.TransRed && type != BlockType.TransBlue && type != BlockType.Water && type != BlockType.StealthBlockB && type != BlockType.StealthBlockR && type2 != BlockType.TransRed && type2 != BlockType.TransBlue && type2 != BlockType.Water && type2 != BlockType.StealthBlockB && type2 != BlockType.StealthBlockR)
+            if (type2 != BlockType.None && type2 != BlockType.TrapB && type != BlockType.TrapB && type != BlockType.TrapR && type2 != BlockType.TrapR && type != BlockType.TransRed && type != BlockType.TransBlue && type != BlockType.Water && type != BlockType.StealthBlockB && type != BlockType.StealthBlockR && type2 != BlockType.TransRed && type2 != BlockType.TransBlue && type2 != BlockType.Water && type2 != BlockType.StealthBlockB && type2 != BlockType.StealthBlockR)
                 HideQuad((ushort)x2, (ushort)y2, (ushort)z2, dir2, type2);
             else
                 ShowQuad(x, y, z, dir, type);
@@ -522,7 +522,7 @@ namespace Infiniminer
         {
             BlockType type = blockList[x, y, z];
             BlockType type2 = blockList[x2, y2, z2];
-            if (type2 != BlockType.None && type != BlockType.TransRed && type != BlockType.TransBlue && type != BlockType.Water && type != BlockType.StealthBlockB && type != BlockType.StealthBlockR && type2 != BlockType.TransRed && type2 != BlockType.TransBlue && type2 != BlockType.Water && type2 != BlockType.StealthBlockB && type2 != BlockType.StealthBlockR)
+            if (type2 != BlockType.None && type2 != BlockType.TrapB && type != BlockType.TrapB && type != BlockType.TrapR && type2 != BlockType.TrapR && type != BlockType.TransRed && type != BlockType.TransBlue && type != BlockType.Water && type != BlockType.StealthBlockB && type != BlockType.StealthBlockR && type2 != BlockType.TransRed && type2 != BlockType.TransBlue && type2 != BlockType.Water && type2 != BlockType.StealthBlockB && type2 != BlockType.StealthBlockR)
                 ShowQuad((ushort)x2, (ushort)y2, (ushort)z2, dir2, type2);
             else
                 HideQuad(x, y, z, dir, type);

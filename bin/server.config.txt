@@ -15,7 +15,7 @@ includelava = true
 orefactor = 10
 
 # If this flag is true, all blocks will be free and the game will be unwinnable.
-sandbox = false
+sandbox = true
 
 # If true, tnt will just disappear instead of exploding
 notnt = false

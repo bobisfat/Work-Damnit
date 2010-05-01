@@ -488,7 +488,7 @@ namespace Infiniminer
                 PlayerTools.Detonator,
                 PlayerTools.SpawnItem };
 
-                playerBlocks = new BlockType[22] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
+                playerBlocks = new BlockType[14] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
                                              playerTeam == PlayerTeam.Red ? BlockType.TransRed : BlockType.TransBlue,
                                              BlockType.Road,
                                              BlockType.Ladder,
@@ -496,19 +496,17 @@ namespace Infiniminer
                                              BlockType.Shock,
                                              playerTeam == PlayerTeam.Red ? BlockType.BeaconRed : BlockType.BeaconBlue,
                                              playerTeam == PlayerTeam.Red ? BlockType.BankRed : BlockType.BankBlue,
+                                             playerTeam == PlayerTeam.Red ? BlockType.StealthBlockR : BlockType.StealthBlockB,
+                                             playerTeam == PlayerTeam.Red ? BlockType.TrapR : BlockType.TrapB,
                                              BlockType.Explosive,
                                              BlockType.Road,
-                                             BlockType.Lava,
-                                             BlockType.Dirt, 
-                                             BlockType.Controller,
-                                             BlockType.Generator,
+                                             //BlockType.Lava,
+                                             //BlockType.Dirt, 
+                                             //BlockType.Controller,
+                                             //BlockType.Generator,
                                              BlockType.Pump,
-                                             BlockType.Compressor,
-                                             BlockType.Pipe,
-                                             BlockType.StealthBlockB,
-                                             BlockType.StealthBlockR,
-                                             BlockType.TrapR,
-                                             BlockType.TrapB,
+                                             //BlockType.Compressor,
+                                             //BlockType.Pipe,
                                              BlockType.Water };
             }
             else
@@ -550,8 +548,8 @@ namespace Infiniminer
                                                         BlockType.Generator,
                                                         BlockType.Pump,
                                                         BlockType.Pipe,
-                                                        BlockType.StealthBlockR,
-                                                        BlockType.StealthBlockB,
+                                                        playerTeam == PlayerTeam.Red ? BlockType.TrapR : BlockType.TrapB,
+                                                        playerTeam == PlayerTeam.Red ? BlockType.StealthBlockR : BlockType.StealthBlockB,
                                                         playerTeam == PlayerTeam.Red ? BlockType.BeaconRed : BlockType.BeaconBlue,
                                                         playerTeam == PlayerTeam.Red ? BlockType.BankRed : BlockType.BankBlue  };
                         break;
