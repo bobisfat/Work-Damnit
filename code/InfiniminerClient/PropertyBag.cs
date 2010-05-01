@@ -47,6 +47,7 @@ namespace Infiniminer
         public int playerBlockSelected = 0;
         public PlayerTeam playerTeam = PlayerTeam.Red;
         public bool playerDead = true;
+        public bool allowRespawn = false;
         public uint playerOre = 0;
         public uint playerHealth = 0;
         public uint playerHealthMax = 0;
@@ -193,9 +194,10 @@ namespace Infiniminer
                 return;
 
             PlaySound(InfiniminerSound.Death);
-            playerPosition = new Vector3(randGen.Next(2, 62), 66, randGen.Next(2, 62));
+           // playerPosition = new Vector3(randGen.Next(2, 62), 66, randGen.Next(2, 62));
             playerVelocity = Vector3.Zero;
             playerDead = true;
+            allowRespawn = false;
             screenEffect = ScreenEffect.Death;
             screenEffectCounter = 0;
 
@@ -203,6 +205,10 @@ namespace Infiniminer
             msgBuffer.Write((byte)InfiniminerMessage.PlayerDead);
             msgBuffer.Write(deathMessage);
             netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
+         
+           // msgBuffer = netClient.CreateBuffer();
+           // msgBuffer.Write((byte)InfiniminerMessage.PlayerRespawn);
+          //  netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
         }
 
         public void RespawnPlayer()
@@ -210,43 +216,16 @@ namespace Infiniminer
             if (netClient.Status != NetConnectionStatus.Connected)
                 return;
 
-            playerDead = false;
 
-            // Respawn a few blocks above a safe position above altitude 0.
-            bool positionFound = false;
-
-            // Try 20 times; use a potentially invalid position if we fail.
-            for (int i = 0; i < 20; i++)
+            if (allowRespawn == false)
             {
-                // Pick a random starting point.
-                Vector3 startPos = new Vector3(randGen.Next(2, 62), 63, randGen.Next(2, 62));
-
-                // See if this is a safe place to drop.
-                for (startPos.Y = 63; startPos.Y >= 54; startPos.Y--)
-                {
-                    BlockType blockType = blockEngine.BlockAtPoint(startPos);
-                    if (blockType == BlockType.Lava)
-                        break;
-                    else if (blockType != BlockType.None)
-                    {
-                        // We have found a valid place to spawn, so spawn a few above it.
-                        playerPosition = startPos + Vector3.UnitY * 5;
-                        positionFound = true;
-                        break;
-                    }
-                }
-
-                // If we found a position, no need to try anymore!
-                if (positionFound)
-                    break;
+                NetBuffer msgBuffer = netClient.CreateBuffer();
+                msgBuffer.Write((byte)InfiniminerMessage.PlayerRespawn);
+                netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
+                return;
             }
 
-            // If we failed to find a spawn point, drop randomly.
-            if (!positionFound)
-                playerPosition = new Vector3(randGen.Next(2, 62), 66, randGen.Next(2, 62));
-
-            // Drop the player on the middle of the block, not at the corner.
-            playerPosition += new Vector3(0.5f, 0, 0.5f);
+            playerDead = false;
 
             // Zero out velocity and reset camera and screen effects.
             playerVelocity = Vector3.Zero;
@@ -255,9 +234,9 @@ namespace Infiniminer
             UpdateCamera();
 
             // Tell the server we have respawned.
-            NetBuffer msgBuffer = netClient.CreateBuffer();
-            msgBuffer.Write((byte)InfiniminerMessage.PlayerAlive);
-            netClient.SendMessage(msgBuffer, NetChannel.ReliableUnordered);
+            NetBuffer msgBufferb = netClient.CreateBuffer();
+            msgBufferb.Write((byte)InfiniminerMessage.PlayerAlive);
+            netClient.SendMessage(msgBufferb, NetChannel.ReliableUnordered);
         }
 
         public void PlaySound(InfiniminerSound sound)
@@ -498,7 +477,7 @@ namespace Infiniminer
                 PlayerTools.Detonator,
                 PlayerTools.SpawnItem };
 
-                playerBlocks = new BlockType[19] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
+                playerBlocks = new BlockType[20] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
                                              playerTeam == PlayerTeam.Red ? BlockType.TransRed : BlockType.TransBlue,
                                              BlockType.Road,
                                              BlockType.Ladder,
@@ -513,6 +492,7 @@ namespace Infiniminer
                                              BlockType.Controller,
                                              BlockType.Generator,
                                              BlockType.Pump,
+                                             BlockType.Compressor,
                                              BlockType.Pipe,
                                              BlockType.StealthBlockB,
                                              BlockType.StealthBlockR,
@@ -791,6 +771,10 @@ namespace Infiniminer
             else if (blockType == BlockType.Pump)
             {
                 return "8: On/Off 9: Change direction";
+            }
+            else if (blockType == BlockType.Compressor)
+            {
+                return "8: Compress/Decompress";
             }
             return "";
         }

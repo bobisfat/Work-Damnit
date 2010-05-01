@@ -94,6 +94,7 @@ namespace Infiniminer
             blockIcons[BlockType.StealthBlockR] = gameInstance.Content.Load<Texture2D>("icons/tex_icon_translucent_red");
             blockIcons[BlockType.Dirt] = gameInstance.Content.Load<Texture2D>("icons/tex_icon_generator");
             blockIcons[BlockType.Pump] = gameInstance.Content.Load<Texture2D>("icons/tex_icon_pump");
+            blockIcons[BlockType.Compressor] = gameInstance.Content.Load<Texture2D>("icons/tex_icon_pump");
             //blockIcons[BlockType.Spring] = gameInstance.Content.Load<Texture2D>("icons/tex_icon_rock");
             blockIcons[BlockType.None] = gameInstance.Content.Load<Texture2D>("icons/tex_icon_deconstruction");
 

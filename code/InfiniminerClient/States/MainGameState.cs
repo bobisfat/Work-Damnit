@@ -203,8 +203,8 @@ namespace Infiniminer.States
                 BlockType hittingHeadOnBlock = _P.blockEngine.BlockAtPoint(headPosition);
                 BlockType crushedByBlock = _P.blockEngine.BlockAtPoint(midPosition);
 
-                if(crushedByBlock == BlockType.Sand || crushedByBlock == BlockType.Dirt)
-                    _P.KillPlayer(Defines.deathByCrush);
+                //if(crushedByBlock == BlockType.Sand || crushedByBlock == BlockType.Dirt)
+                    //_P.KillPlayer(Defines.deathByCrush);
 
                 // If we"re hitting the ground with a high velocity, die!
                 if (standingOnBlock != BlockType.None && _P.playerVelocity.Y < 0)
@@ -241,10 +241,7 @@ namespace Infiniminer.States
 
                 if (_P.blockEngine.SolidAtPointForPlayer(midPosition))
                 {
-                    if (_P.blockEngine.blockList[(int)midPosition.X, (int)midPosition.Y, (int)midPosition.Z] == BlockType.Sand || _P.blockEngine.blockList[(int)midPosition.X, (int)midPosition.Y, (int)midPosition.Z] == BlockType.Dirt)
-                    {
                         _P.KillPlayer(Defines.deathByCrush);//may not be reliable enough to kill players that get hit by sand
-                    }
                 }
                 // If the player has their head stuck in a block, push them down.
                 if (_P.blockEngine.SolidAtPointForPlayer(headPosition))
@@ -298,8 +295,10 @@ namespace Infiniminer.States
                         return;
                 }
             }
-            _P.playerPosition += _P.playerVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
-
+            if (!_P.blockEngine.SolidAtPointForPlayer(midPosition + _P.playerVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds))
+            {
+                _P.playerPosition += _P.playerVelocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
             // Death by falling off the map.
             if (_P.playerPosition.Y < -30)
             {
@@ -389,7 +388,8 @@ namespace Infiniminer.States
             Vector3 movePosition = _P.playerPosition + testVector;
             Vector3 midBodyPoint = movePosition + new Vector3(0, -0.7f, 0);
             Vector3 lowerBodyPoint = movePosition + new Vector3(0, -1.4f, 0);
-
+            //float size = 0.2f;
+            
             if (!_P.blockEngine.SolidAtPointForPlayer(movePosition) && !_P.blockEngine.SolidAtPointForPlayer(lowerBodyPoint) && !_P.blockEngine.SolidAtPointForPlayer(midBodyPoint))
             {
                 _P.playerPosition = _P.playerPosition + moveVector;
@@ -407,7 +407,7 @@ namespace Infiniminer.States
                 _P.KillPlayer(Defines.deathByLava);
                 return true;
             }
-
+          
             // If it's a ladder, move up.
             if (upperBlock == BlockType.Ladder || lowerBlock == BlockType.Ladder || midBlock == BlockType.Ladder)
             {
@@ -590,6 +590,11 @@ namespace Infiniminer.States
                         _P.PlayerInteract(1);
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
+                    else if (targetd == BlockType.Compressor)
+                    {
+                        _P.PlayerInteract(1);
+                        _P.PlaySound(InfiniminerSound.ClickHigh);
+                    }
                     else if (targetd == BlockType.Generator)
                     {
                         _P.PlayerInteract(1);
@@ -609,6 +614,11 @@ namespace Infiniminer.States
                         _P.PlaySound(InfiniminerSound.ClickHigh);
                     }
                     else if (targetw == BlockType.Pump)
+                    {
+                        _P.PlayerInteract(2);
+                        _P.PlaySound(InfiniminerSound.ClickHigh);
+                    }
+                    else if (targetw == BlockType.Compressor)
                     {
                         _P.PlayerInteract(2);
                         _P.PlaySound(InfiniminerSound.ClickHigh);
