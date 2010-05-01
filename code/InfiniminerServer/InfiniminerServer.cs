@@ -2728,15 +2728,16 @@ namespace Infiniminer
                                                     if (blockList[a, b, c] == BlockType.Water || blockList[a, b, c] == BlockType.Lava)
                                                     {
                                                         SetBlock((ushort)(a), (ushort)(b), (ushort)(c), BlockType.None, PlayerTeam.None);
-
-                                                        if (blockList[a, b, c] == BlockType.Water)
-                                                        {
-                                                            blockListContent[i, j, k, 1] = 1;// (int)(blockList[a, b, c]);
-                                                        }
-                                                        else//refuses to typecast from block to int using blockList
-                                                        {
-                                                            blockListContent[i, j, k, 1] = 2;// (int)(blockList[a, b, c]);
-                                                        }
+                                                        blockListContent[i, j, k, 1] = (byte)(blockList[a, b, c]);// BlockType.Water;
+                                                        ConsoleWrite("" + blockListContent[i, j, k, 1] + "," + (BlockType)((blockListContent[i, j, k, 1])));
+                                                        //if (blockList[a, b, c] == BlockType.Water)
+                                                        //{
+                                                        //    blockListContent[i, j, k, 1] = (byte)BlockType.Water;// 1;// (int)(blockList[a, b, c]);
+                                                        //}
+                                                        //else//refuses to typecast from block to int using blockList
+                                                        //{
+                                                        //    blockListContent[i, j, k, 1] = (byte)BlockType.Water; //2;// (int)(blockList[a, b, c]);
+                                                        //}
 
                                                         blockListContent[i, j, k, 2] += 1;
                                                     }
@@ -2747,7 +2748,7 @@ namespace Infiniminer
                                         }
                                     }
                                 }
-                                else
+                                else//venting
                                 {
                                     if (blockListContent[i, j, k, 1] > 0)//has type
                                     {
@@ -2755,14 +2756,16 @@ namespace Infiniminer
                                         {
                                             if (blockList[i, j + 1, k] == BlockType.None)
                                             {
-                                                if (blockListContent[i, j, k, 1] == 1)
-                                                {
-                                                    SetBlock(i, (ushort)(j + 1), k, BlockType.Water, PlayerTeam.None);//places its contents in desired direction at a distance
-                                                }
-                                                else if (blockListContent[i, j, k, 1] == 2)
-                                                {
-                                                    SetBlock(i, (ushort)(j + 1), k, BlockType.Lava, PlayerTeam.None);//places its contents in desired direction at a distance
-                                                }
+                                                //if (blockListContent[i, j, k, 1] == 1)
+                                                //{
+                                                //    SetBlock(i, (ushort)(j + 1), k, BlockType.Water, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                //}
+                                                //else if (blockListContent[i, j, k, 1] == 2)
+                                                //{
+                                                //    SetBlock(i, (ushort)(j + 1), k, BlockType.Lava, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                //}
+                                                SetBlock(i, (ushort)(j + 1), k, (BlockType)(blockListContent[i, j, k, 1]), PlayerTeam.None);//places its contents in desired direction at a distance
+                                                ConsoleWrite("" + (BlockType)((blockListContent[i, j, k, 1])));
                                                 blockListContent[i, j, k, 2] -= 1;
                                                 continue;
                                             }
@@ -2774,14 +2777,15 @@ namespace Infiniminer
                                                     {
                                                         if (blockList[i,j+m,k] == BlockType.None)
                                                         {
-                                                            if (blockListContent[i, j, k, 1] == 1)
-                                                            {
-                                                                SetBlock(i, (ushort)(j + m), k, BlockType.Water, PlayerTeam.None);//places its contents in desired direction at a distance
-                                                            }
-                                                            else if (blockListContent[i, j, k, 1] == 2)
-                                                            {
-                                                                SetBlock(i, (ushort)(j + m), k, BlockType.Lava, PlayerTeam.None);//places its contents in desired direction at a distance
-                                                            }
+                                                            SetBlock(i, (ushort)(j + m), k, (BlockType)(blockListContent[i, j, k, 1]), PlayerTeam.None);//places its contents in desired direction at a distance
+                                                            //if (blockListContent[i, j, k, 1] == 1)
+                                                            //{
+                                                            //    SetBlock(i, (ushort)(j + m), k, BlockType.Water, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                            //}
+                                                            //else if (blockListContent[i, j, k, 1] == 2)
+                                                            //{
+                                                            //    SetBlock(i, (ushort)(j + m), k, BlockType.Lava, PlayerTeam.None);//places its contents in desired direction at a distance
+                                                            //}
                                                             blockListContent[i, j, k, 2] -= 1;
                                                             break;//done with this pump
                                                         }
