@@ -3047,7 +3047,14 @@ namespace Infiniminer
                     removeBlock = true;
                     sound = InfiniminerSound.DigDirt;
                     break;
-
+                case BlockType.StealthBlockB:
+                    removeBlock = true;
+                    sound = InfiniminerSound.DigDirt;
+                    break;
+                case BlockType.StealthBlockR:
+                    removeBlock = true;
+                    sound = InfiniminerSound.DigDirt;
+                    break;
                 case BlockType.Ore:
                     removeBlock = true;
                     giveOre = 20;
