@@ -462,13 +462,11 @@ namespace Infiniminer
 
             if (playerTeam == PlayerTeam.Red)
             {
-                blockEngine.blockTextures[(byte)BlockTexture.Dirt] = blockEngine.blockTextures[(byte)BlockTexture.SolidRed];
-                //blockEngine.blockTextures[(byte)BlockTexture.Dirt] = blockEngine.blockTextures[(byte)BlockTexture.Trap];
+                blockEngine.blockTextures[(byte)BlockTexture.TrapR] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
             }
             else
             {
-                //blockEngine.blockTextures[(byte)BlockTexture.Dirt] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
-                blockEngine.blockTextures[(byte)BlockTexture.Dirt] = blockEngine.blockTextures[(byte)BlockTexture.SolidBlue];
+                blockEngine.blockTextures[(byte)BlockTexture.TrapB] = blockEngine.blockTextures[(byte)BlockTexture.TrapVis];
             }
         }
 
@@ -488,7 +486,7 @@ namespace Infiniminer
                 PlayerTools.Detonator,
                 PlayerTools.SpawnItem };
 
-                playerBlocks = new BlockType[20] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
+                playerBlocks = new BlockType[22] {   playerTeam == PlayerTeam.Red ? BlockType.SolidRed : BlockType.SolidBlue,
                                              playerTeam == PlayerTeam.Red ? BlockType.TransRed : BlockType.TransBlue,
                                              BlockType.Road,
                                              BlockType.Ladder,
@@ -507,6 +505,8 @@ namespace Infiniminer
                                              BlockType.Pipe,
                                              BlockType.StealthBlockB,
                                              BlockType.StealthBlockR,
+                                             BlockType.TrapR,
+                                             BlockType.TrapB,
                                              BlockType.Water };
             }
             else
